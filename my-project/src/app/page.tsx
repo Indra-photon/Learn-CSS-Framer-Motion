@@ -1,0 +1,21 @@
+import Hero from "./components/Hero";
+import Feature from "./components/Feature";
+import Card from "./components/Card";
+import { Grid } from "./components/Grid";
+import Component from "./components/Component";
+import SVGComponent from "./components/SVGComponent";
+import { SVGLine } from "./components/SVGLine";
+
+export default function Home() {
+  return (
+    <div className=" h-screen w-screen mx-auto flex items-center justify-center">
+       <Hero />
+       {/* <Feature /> */}
+       {/* <Card /> */}
+        {/* <Grid /> */}
+        {/* <Component /> */}
+        {/* <SVGComponent /> */}
+        {/* <SVGLine /> */}
+    </div>
+  )
+}
