@@ -7,6 +7,9 @@ import SVGComponent from "./components/SVGComponent";
 import { SVGLine } from "./components/SVGLine";
 import BentoGrid from "./components/BentoGrid";
 import AnimatedCard from "./components/AnimatedCard";
+import Dashboard from "./components/Dashboard";
+import ProfileCard from "./components/ProfileCard";
+import LayoutAnimation from "./components/LayoutAnimation";
 
 export default function Home() {
   return (
@@ -19,7 +22,10 @@ export default function Home() {
         {/* <SVGComponent /> */}
         {/* <SVGLine /> */}
         {/* <BentoGrid /> */}
-        <AnimatedCard />
+        {/* <AnimatedCard /> */}
+        {/* <Dashboard /> */}
+        <ProfileCard />
+        {/* <LayoutAnimation /> */}
     </div>
   )
 }
