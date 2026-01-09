@@ -10,6 +10,13 @@ import AnimatedCard from "./components/AnimatedCard";
 import Dashboard from "./components/Dashboard";
 import ProfileCard from "./components/ProfileCard";
 import LayoutAnimation from "./components/LayoutAnimation";
+import ProductCard from "./components/ProductCard";
+import DeleteButton from "./components/DeleteButton";
+import CartButton from "./components/CartButton";
+import SVGRotation from "./components/SVGRotation";
+import AnimatedProfileCards from "./components/AnimatedProfileCards";
+import ImageGrid from "./components/ImageGrid";
+import TabAnimation from "./components/TabAnimation";
 
 export default function Home() {
   return (
@@ -24,8 +31,15 @@ export default function Home() {
         {/* <BentoGrid /> */}
         {/* <AnimatedCard /> */}
         {/* <Dashboard /> */}
-        <ProfileCard />
+        {/* <ProfileCard /> */}
         {/* <LayoutAnimation /> */}
+        {/* <ProductCard /> */}
+        {/* <DeleteButton /> */}
+        {/* <CartButton /> */}
+        {/* <SVGRotation /> */}
+        {/* <AnimatedProfileCards /> */}
+        {/* <ImageGrid /> */}
+        <TabAnimation />
     </div>
   )
 }
