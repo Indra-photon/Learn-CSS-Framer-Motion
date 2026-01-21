@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React from 'react'
@@ -234,160 +235,160 @@ function ShareInteraction() {
             </AnimatePresence>
 
             {/* Form Popup */}
-            {selectedActionItem !== null && (
-            <motion.div className='absolute top-4 flex items-center justify-center z-40'>
-                <AnimatePresence>
-                    {selectedActionItem === 'report' && (
-                        <motion.div layoutId='report-form' className='bg-white p-4 rounded-md border border-neutral-300 w-88 flex space-y-2 flex-col shadow-lg' 
-                            initial={{opacity: 0, y: -20}}
-                            animate={{opacity: 1, y: 0, transition: {type: 'spring', stiffness: 300, damping: 10, duration: 0.3}}}
-                            exit={{opacity: 0, y: -20, transition: {ease: 'easeIn', duration: 0.2}}}
-                        >
-                            <textarea 
-    placeholder='Describe the issue in detail...' 
-    className='p-3 border border-neutral-300 rounded-lg w-full h-24 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-neutral-50 focus:bg-white transition-all duration-200 text-sm text-neutral-800 shadow-sm hover:border-neutral-400'
-/>
-                            <motion.div layoutId='report-form-actions' className='flex items-end justify-end w-full'>
-                                <motion.button layoutId='report-form-submit' onClick={() => handleReportSubmit()} className={`ml-2 ${isSubmitting ? ' cursor-not-allowed' : ''} px-4 py-2 bg-blue-600 text-white rounded-md font-medium tracking-tighter uppercase hover:bg-blue-700 transition-colors`}>
-                                    {isSubmitting ? (
-                                        <>
-                                            {"Submitt"}
-                                            {["i", "n", "g"].map((letter, index) => (
-                                                <motion.span
-                                                    key={`ing-${index}`}
-                                                    className='inline-block'
-                                                    initial={{ opacity: 0, y: 10 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    transition={{ 
-                                                        type: "spring", 
-                                                        damping: 20, 
-                                                        stiffness: 350, 
-                                                        delay: index * 0.1 
-                                                    }}
-                                                >
-                                                    {letter}
-                                                </motion.span>
-                                            ))}
-                                        </>
-                                    ) : isSubmissionSuccessful ? (
-                                        <>
-                                            {"Submit"}
-                                            {["t", "e", "d"].map((letter, index) => (
-                                                <motion.span
-                                                    key={`ted-${index}`}
-                                                    className='inline-block'
-                                                    initial={{ opacity: 0, y: 10 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    transition={{ 
-                                                        type: "spring", 
-                                                        damping: 20, 
-                                                        stiffness: 350, 
-                                                        delay: index * 0.1 
-                                                    }}
-                                                >
-                                                    {letter}
-                                                </motion.span>
-                                            ))}
-                                        </>
-                                    ) : (
-                                        "Submit"
-                                    )}
-                                </motion.button>
+            <AnimatePresence mode='wait'>
+                {selectedActionItem !== null && (
+                <motion.div className='absolute top-4 flex items-center justify-center z-40'>
+                        {selectedActionItem === 'report' && (
+                            <motion.div layoutId='report-form' className='bg-white p-4 rounded-md border border-neutral-300 w-88 flex space-y-2 flex-col shadow-lg' 
+                                initial={{opacity: 0, y: -20}}
+                                animate={{opacity: 1, y: 0, transition: {type: 'spring', stiffness: 300, damping: 10, duration: 0.3}}}
+                                exit={{opacity: 0, y: -50, scale: 0.95, transition: {type: 'spring', stiffness: 300, damping: 35, duration: 0.3}}}
+                            >
+                                <textarea 
+        placeholder='Describe the issue in detail...' 
+        className='p-3 border border-neutral-300 rounded-lg w-full h-24 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-neutral-50 focus:bg-white transition-all duration-200 text-sm text-neutral-800 shadow-sm hover:border-neutral-400'
+    />
+                                <motion.div layoutId='report-form-actions' className='flex items-end justify-end w-full'>
+                                    <motion.button layoutId='report-form-submit' onClick={() => handleReportSubmit()} className={`ml-2 ${isSubmitting ? ' cursor-not-allowed' : ''} px-4 py-2 bg-blue-600 text-white rounded-md font-medium tracking-tighter uppercase hover:bg-blue-700 transition-colors`}>
+                                        {isSubmitting ? (
+                                            <>
+                                                {"Submitt"}
+                                                {["i", "n", "g"].map((letter, index) => (
+                                                    <motion.span
+                                                        key={`ing-${index}`}
+                                                        className='inline-block'
+                                                        initial={{ opacity: 0, y: 10 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        transition={{ 
+                                                            type: "spring", 
+                                                            damping: 20, 
+                                                            stiffness: 350, 
+                                                            delay: index * 0.1 
+                                                        }}
+                                                    >
+                                                        {letter}
+                                                    </motion.span>
+                                                ))}
+                                            </>
+                                        ) : isSubmissionSuccessful ? (
+                                            <>
+                                                {"Submit"}
+                                                {["t", "e", "d"].map((letter, index) => (
+                                                    <motion.span
+                                                        key={`ted-${index}`}
+                                                        className='inline-block'
+                                                        initial={{ opacity: 0, y: 10 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        transition={{ 
+                                                            type: "spring", 
+                                                            damping: 20, 
+                                                            stiffness: 350, 
+                                                            delay: index * 0.1 
+                                                        }}
+                                                    >
+                                                        {letter}
+                                                    </motion.span>
+                                                ))}
+                                            </>
+                                        ) : (
+                                            "Submit"
+                                        )}
+                                    </motion.button>
+                                </motion.div>
+                                
                             </motion.div>
-                            
-                        </motion.div>
-                    )}
-                    {selectedActionItem === 'note' && (
-                        <motion.div layoutId='report-form' className='bg-white p-4 rounded-md border border-neutral-300 w-88 flex space-y-2 flex-col shadow-lg' 
-                            initial={{opacity: 0, y: -20}}
-                            animate={{opacity: 1, y: 0, transition: {type: 'spring', stiffness: 300, damping: 10, duration: 0.3}}}
-                            exit={{opacity: 0, y: -20, transition: {ease: 'easeIn', duration: 0.2}}}
-                        >
-                            <textarea 
-    placeholder='Leave a feedback for us..' 
-    className='p-3 border border-neutral-300 rounded-lg w-full h-24 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-neutral-50 focus:bg-white transition-all duration-200 text-sm text-neutral-800 shadow-sm hover:border-neutral-400'
-/>
-                            {/* star rating system */}
-                            <div className='flex items-center space-x-1'>
-                                {[...Array(5)].map((_, index) => (
-                                    <button key={index} className='p-2 hover:text-yellow-500 transition-colors'>
-                                        <IconStar size={20} />
+                        )}
+                        {selectedActionItem === 'note' && (
+                            <motion.div layoutId='report-form' className='bg-white p-4 rounded-md border border-neutral-300 w-88 flex space-y-2 flex-col shadow-lg' 
+                                initial={{opacity: 0, y: -20}}
+                                animate={{opacity: 1, y: 0, transition: {type: 'spring', stiffness: 300, damping: 10, duration: 0.3}}}
+                                exit={{opacity: 0, y: -50, scale: 0.95, transition: {type: 'spring', stiffness: 300, damping: 35, duration: 0.3}}}
+                            >
+                                <textarea 
+        placeholder='Leave a feedback for us..' 
+        className='p-3 border border-neutral-300 rounded-lg w-full h-24 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-neutral-50 focus:bg-white transition-all duration-200 text-sm text-neutral-800 shadow-sm hover:border-neutral-400'
+    />
+                                {/* star rating system */}
+                                <div className='flex items-center space-x-1'>
+                                    {[...Array(5)].map((_, index) => (
+                                        <button key={index} className='p-2 hover:text-yellow-500 transition-colors'>
+                                            <IconStar size={20} />
+                                        </button>
+                                    ))}
+                                </div>
+                                <motion.div layoutId='report-form-actions' className='flex items-end justify-end w-full'>
+                                    <motion.button layoutId='report-form-submit' onClick={() => handleReportSubmit()} className={`ml-2 ${isSubmitting ? ' cursor-not-allowed' : ''} px-4 py-2 bg-blue-600 text-white rounded-md font-medium tracking-tighter uppercase hover:bg-blue-700 transition-colors`}>
+                                        {isSubmitting ? (
+                                            <>
+                                                {"Submitt"}
+                                                {["i", "n", "g"].map((letter, index) => (
+                                                    <motion.span
+                                                        key={`ing-${index}`}
+                                                        className='inline-block'
+                                                        initial={{ opacity: 0, y: 10 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        transition={{ 
+                                                            type: "spring", 
+                                                            damping: 20, 
+                                                            stiffness: 350, 
+                                                            delay: index * 0.1 
+                                                        }}
+                                                    >
+                                                        {letter}
+                                                    </motion.span>
+                                                ))}
+                                            </>
+                                        ) : isSubmissionSuccessful ? (
+                                            <>
+                                                {"Submit"}
+                                                {["t", "e", "d"].map((letter, index) => (
+                                                    <motion.span
+                                                        key={`ted-${index}`}
+                                                        className='inline-block'
+                                                        initial={{ opacity: 0, y: 10 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        transition={{ 
+                                                            type: "spring", 
+                                                            damping: 20, 
+                                                            stiffness: 350, 
+                                                            delay: index * 0.1 
+                                                        }}
+                                                    >
+                                                        {letter}
+                                                    </motion.span>
+                                                ))}
+                                            </>
+                                        ) : (
+                                            "Submit"
+                                        )}
+                                    </motion.button>
+                                </motion.div>
+                                
+                            </motion.div>
+                        )}
+                        {selectedActionItem === 'share' && (
+                            <motion.div layoutId='report-form' className='bg-white p-4 rounded-md border border-neutral-300 w-88 flex space-y-3 flex-col shadow-lg' 
+                                initial={{opacity: 0, y: -20}}
+                                animate={{opacity: 1, y: 0, transition: {type: 'spring', stiffness: 300, damping: 10, duration: 0.3}}}
+                                exit={{opacity: 0, y: -50, scale: 0.95, transition: {type: 'spring', stiffness: 300, damping: 35, duration: 0.3}}}
+                            >
+                                <div className='text-sm font-semibold text-neutral-800'>Share this post</div>
+                                <div className='flex flex-col gap-2'>
+                                    <button className='px-4 py-2 bg-blue-500 text-white rounded-md text-sm font-medium hover:bg-blue-600 transition-colors'>
+                                        Share on Twitter
                                     </button>
-                                ))}
-                            </div>
-                            <motion.div layoutId='report-form-actions' className='flex items-end justify-end w-full'>
-                                <motion.button layoutId='report-form-submit' onClick={() => handleReportSubmit()} className={`ml-2 ${isSubmitting ? ' cursor-not-allowed' : ''} px-4 py-2 bg-blue-600 text-white rounded-md font-medium tracking-tighter uppercase hover:bg-blue-700 transition-colors`}>
-                                    {isSubmitting ? (
-                                        <>
-                                            {"Submitt"}
-                                            {["i", "n", "g"].map((letter, index) => (
-                                                <motion.span
-                                                    key={`ing-${index}`}
-                                                    className='inline-block'
-                                                    initial={{ opacity: 0, y: 10 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    transition={{ 
-                                                        type: "spring", 
-                                                        damping: 20, 
-                                                        stiffness: 350, 
-                                                        delay: index * 0.1 
-                                                    }}
-                                                >
-                                                    {letter}
-                                                </motion.span>
-                                            ))}
-                                        </>
-                                    ) : isSubmissionSuccessful ? (
-                                        <>
-                                            {"Submit"}
-                                            {["t", "e", "d"].map((letter, index) => (
-                                                <motion.span
-                                                    key={`ted-${index}`}
-                                                    className='inline-block'
-                                                    initial={{ opacity: 0, y: 10 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    transition={{ 
-                                                        type: "spring", 
-                                                        damping: 20, 
-                                                        stiffness: 350, 
-                                                        delay: index * 0.1 
-                                                    }}
-                                                >
-                                                    {letter}
-                                                </motion.span>
-                                            ))}
-                                        </>
-                                    ) : (
-                                        "Submit"
-                                    )}
-                                </motion.button>
+                                    <button className='px-4 py-2 bg-neutral-100 text-neutral-700 rounded-md text-sm font-medium hover:bg-neutral-200 transition-colors'>
+                                        Copy Link
+                                    </button>
+                                    <button className='px-4 py-2 bg-neutral-100 text-neutral-700 rounded-md text-sm font-medium hover:bg-neutral-200 transition-colors'>
+                                        Send via Email
+                                    </button>
+                                </div>
                             </motion.div>
-                            
-                        </motion.div>
-                    )}
-                    {selectedActionItem === 'share' && (
-                        <motion.div layoutId='report-form' className='bg-white p-4 rounded-md border border-neutral-300 w-88 flex space-y-3 flex-col shadow-lg' 
-                            initial={{opacity: 0, y: -20}}
-                            animate={{opacity: 1, y: 0, transition: {type: 'spring', stiffness: 300, damping: 10, duration: 0.3}}}
-                            exit={{opacity: 0, y: -20, transition: {ease: 'easeIn', duration: 0.2}}}
-                        >
-                            <div className='text-sm font-semibold text-neutral-800'>Share this post</div>
-                            <div className='flex flex-col gap-2'>
-                                <button className='px-4 py-2 bg-blue-500 text-white rounded-md text-sm font-medium hover:bg-blue-600 transition-colors'>
-                                    Share on Twitter
-                                </button>
-                                <button className='px-4 py-2 bg-neutral-100 text-neutral-700 rounded-md text-sm font-medium hover:bg-neutral-200 transition-colors'>
-                                    Copy Link
-                                </button>
-                                <button className='px-4 py-2 bg-neutral-100 text-neutral-700 rounded-md text-sm font-medium hover:bg-neutral-200 transition-colors'>
-                                    Send via Email
-                                </button>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </motion.div>
-            )}
+                        )}
+                </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Action Buttons */}
             <AnimatePresence>
@@ -413,7 +414,10 @@ function ShareInteraction() {
             </AnimatePresence>
 
             {/* Main Action Button */}
-            <div onClick={() => setIsMainButtonClicked(!isMainButtonClicked)} className='h-12 w-12 bg-white rounded-full border border-neutral-300 flex items-center justify-center absolute bottom-2 right-2 cursor-pointer hover:shadow-lg transition-shadow z-50'>
+            <div onClick={() => {
+                setIsMainButtonClicked(!isMainButtonClicked);
+                setSelectedActionItem(null);
+            }} className='h-12 w-12 bg-white rounded-full border border-neutral-300 flex items-center justify-center absolute bottom-2 right-2 cursor-pointer hover:shadow-lg transition-shadow z-50'>
                 {isMainButtonClicked ? 
                     <motion.span 
                     initial={{ rotate: 0, filter: 'blur(4px)'}}
@@ -668,7 +672,10 @@ export function ShareInteractionBefore() {
             )}
 
             {/* Main Action Button - No rotation animation */}
-            <div onClick={() => setIsMainButtonClicked(!isMainButtonClicked)} className='h-12 w-12 bg-white rounded-full border border-neutral-300 flex items-center justify-center absolute bottom-2 right-2 cursor-pointer z-50'>
+            <div onClick={() => {
+                setIsMainButtonClicked(!isMainButtonClicked);
+                setSelectedActionItem(null);
+            }}  className='h-12 w-12 bg-white rounded-full border border-neutral-300 flex items-center justify-center absolute bottom-2 right-2 cursor-pointer z-50'>
                 {isMainButtonClicked ? <IconX size={24} /> : <IconEdit size={24} />}
             </div>
 
