@@ -16,7 +16,10 @@ import CartButton from "./components/CartButton";
 import SVGRotation from "./components/SVGRotation";
 import AnimatedProfileCards from "./components/AnimatedProfileCards";
 import ImageGrid from "./components/ImageGrid";
-import TabAnimation from "./components/TabAnimation";
+import SearchButtonDemo from "./components/SearchButtonDemo";
+import { Share } from "next/font/google";
+import ShareInteraction, {ShareInteractionBefore} from "./components/ShareInteraction";
+import ComparisonShowcase from "./components/ComparisonShowcase";
 
 export default function Home() {
   return (
@@ -39,7 +42,21 @@ export default function Home() {
         {/* <SVGRotation /> */}
         {/* <AnimatedProfileCards /> */}
         {/* <ImageGrid /> */}
-        <TabAnimation />
+        {/* <SearchButtonDemo /> */}
+        {/* <ShareInteraction /> */}
+        <ComparisonShowcase
+            title="I rebuilt this interaction 3 times until it felt right"
+            description="See the difference motion design makes in user experience"
+            
+            beforeComponent={<ShareInteractionBefore />}
+            afterComponent={<ShareInteraction />}
+            
+            beforeHeading="without motion"
+            afterHeading="with motion"
+
+            beforeFooter=""
+            afterFooter=""
+        />
     </div>
   )
 }
