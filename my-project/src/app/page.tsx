@@ -20,10 +20,11 @@ import SearchButtonDemo from "./components/SearchButtonDemo";
 import { Share } from "next/font/google";
 import ShareInteraction, {ShareInteractionBefore} from "./components/ShareInteraction";
 import ComparisonShowcase from "./components/ComparisonShowcase";
+import AddTask from "./components/AddTask";
 
 export default function Home() {
   return (
-    <div className=" h-screen w-screen mx-auto flex items-center justify-center">
+    <div className=" min-h-screen w-screen mx-auto flex flex-col items-center justify-center">
        {/* <Hero /> */}
        {/* <Feature /> */}
        {/* <Card /> */}
@@ -57,6 +58,8 @@ export default function Home() {
             beforeFooter=""
             afterFooter=""
         />
+
+        <AddTask />
     </div>
   )
 }
