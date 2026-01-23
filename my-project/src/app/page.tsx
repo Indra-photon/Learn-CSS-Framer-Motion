@@ -21,6 +21,7 @@ import { Share } from "next/font/google";
 import ShareInteraction, {ShareInteractionBefore} from "./components/ShareInteraction";
 import ComparisonShowcase from "./components/ComparisonShowcase";
 import AddTask from "./components/AddTask";
+import InviteAnimation from "./components/InviteAnimation";
 
 export default function Home() {
   return (
@@ -59,7 +60,8 @@ export default function Home() {
             afterFooter=""
         />
 
-        <AddTask />
+        {/* <AddTask /> */}
+        <InviteAnimation />
     </div>
   )
 }
