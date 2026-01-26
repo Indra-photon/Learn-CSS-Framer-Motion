@@ -22,6 +22,7 @@ import ShareInteraction, {ShareInteractionBefore} from "./components/ShareIntera
 import ComparisonShowcase from "./components/ComparisonShowcase";
 import AddTask from "./components/AddTask";
 import InviteAnimation from "./components/InviteAnimation";
+import FlowerMenu from "./components/FlowerMenu";
 
 export default function Home() {
   return (
@@ -46,7 +47,7 @@ export default function Home() {
         {/* <ImageGrid /> */}
         {/* <SearchButtonDemo /> */}
         {/* <ShareInteraction /> */}
-        <ComparisonShowcase
+        {/* <ComparisonShowcase
             title="I rebuilt this interaction 3 times until it felt right"
             description="See the difference motion design makes in user experience"
             
@@ -58,10 +59,11 @@ export default function Home() {
 
             beforeFooter=""
             afterFooter=""
-        />
+        /> */}
 
         {/* <AddTask /> */}
-        <InviteAnimation />
+        {/* <InviteAnimation /> */}
+        <FlowerMenu />
     </div>
   )
 }
