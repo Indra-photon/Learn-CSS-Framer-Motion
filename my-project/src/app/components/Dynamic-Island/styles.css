@@ -1,0 +1,38 @@
+ .timer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    color: #f6a11e;
+    background: black;
+    padding-right: 1.5rem;
+    border-radius: 9999px;
+    width: 300px;
+}
+
+.timer-text {
+    font-size: 2rem;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+}
+
+.controls {
+    display: flex;
+    justify-content: center;
+    gap: 0.25rem;
+    margin-top: 2rem;
+}
+
+button {
+    background: var(--gray3);
+    font-weight: 500;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    border: 1px solid var(--gray5);
+    font-size: 0.875rem;
+    color: currentColor;
+}
+
+button:disabled {
+    opacity: 0.5;
+}

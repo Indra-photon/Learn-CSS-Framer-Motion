@@ -23,10 +23,34 @@ import ComparisonShowcase from "./components/ComparisonShowcase";
 import AddTask from "./components/AddTask";
 import InviteAnimation from "./components/InviteAnimation";
 import FlowerMenu from "./components/FlowerMenu";
+import DynamicIslandClock from "./components/Dynamic-Island/DynamicIslandClock";
+import Link from "next/link";
+import CounterAnimation from "./components/CounterAnimation";
 
 export default function Home() {
   return (
-    <div className=" min-h-screen w-screen mx-auto flex flex-col items-center justify-center">
+    <div className="">
+      <nav className="w-full p-4 flex justify-center bg-gray-800 text-white mb-8">
+        <Link href="/" className="mx-4 hover:underline">Home</Link>
+        <div className="relative group">
+          <Link href="/Emil-course" className="mx-4 hover:underline">
+            Emil's Course
+          </Link>
+          <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-40 bg-white text-gray-900 rounded shadow-lg opacity-0 group-hover:opacity-100 pointer-events-auto group-hover:pointer-events-auto transition-opacity z-10">
+            <ul>
+              {["01", "02", "03"].map((item) => (
+          <li key={item}>
+            <Link href={`/Emil-course/${item}`} className="block px-4 py-2 hover:bg-gray-100">
+              {item}
+            </Link>
+          </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+        <Link href="/contact" className="mx-4 hover:underline">Contact</Link>
+      </nav>
+      <div className=" min-h-screen w-screen mx-auto flex flex-col items-center justify-center">
        {/* <Hero /> */}
        {/* <Feature /> */}
        {/* <Card /> */}
@@ -63,7 +87,10 @@ export default function Home() {
 
         {/* <AddTask /> */}
         {/* <InviteAnimation /> */}
-        <FlowerMenu />
+        {/* <FlowerMenu /> */}
+        {/* <DynamicIslandClock /> */}
+        <CounterAnimation />
+      </div>
     </div>
   )
 }
