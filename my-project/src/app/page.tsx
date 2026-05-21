@@ -1,10 +1,11 @@
-import MorphingButton from "./components/learning02/MorphingButton";
+
+import AILLMLeaderBoard from "./components/learning02/AILLMLeaderBoard";
 
 
 export default function Home() {
   return (
     <div className="">
-      <MorphingButton />
+      <AILLMLeaderBoard />
     </div>
   )
 }
