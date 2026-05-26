@@ -6,13 +6,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@hugeicons/core-free-icons": "^4.1.4",
     "@hugeicons/react": "^1.1.6",
     "@number-flow/react": "^0.6.0",
     "@tabler/icons-react": "^3.35.0",
+    "@toolwind/corner-shape": "^0.0.8-3",
     "@visx/event": "^4.0.1-alpha.0",
     "@visx/gradient": "^4.0.1-alpha.0",
     "@visx/grid": "^4.0.1-alpha.0",
@@ -44,6 +46,8 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
+    "prettier": "^3.8.3",
+    "prettier-plugin-tailwindcss": "^0.8.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

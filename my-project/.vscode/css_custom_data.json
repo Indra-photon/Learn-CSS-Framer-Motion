@@ -1,0 +1,10 @@
+{
+  "version": 1.1,
+  "properties": [
+    {
+      "name": "corner-shape",
+      "description": "Defines the shape of CSS corners (proposed spec). Values: round | scoop | bevel | notch | squircle.",
+      "browsers": ["C130"]
+    }
+  ]
+}
