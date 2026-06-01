@@ -56,9 +56,11 @@ export default function DynamicPortfolio01() {
               className="relative h-10 w-10 flex-shrink-0 overflow-hidden bg-stone-200"
               style={{ borderRadius: 9999 }}
             >
-              <div className="flex h-full w-full items-center justify-center text-2xl leading-none select-none">
-                🧑‍💻
-              </div>
+              <img
+                src="/Indranil.png"
+                alt="Indranil avatar"
+                className="h-full w-full object-cover"
+              />
             </motion.div>
 
             {/* Green + button — morphs to orange contact button in expanded state */}
@@ -101,9 +103,11 @@ export default function DynamicPortfolio01() {
               className="h-10 w-10 flex-shrink-0 overflow-hidden bg-stone-200"
               style={{ borderRadius: 9999 }}
             >
-              <div className="flex h-full w-full items-center justify-center text-2xl leading-none select-none">
-                🧑‍💻
-              </div>
+              <img
+                src="/Indranil.png"
+                alt="Indranil avatar"
+                className="h-full w-full object-cover"
+              />
             </motion.div>
 
             {/* Name text */}
@@ -191,32 +195,36 @@ export default function DynamicPortfolio01() {
               className="h-10 w-10 flex-shrink-0 self-start overflow-hidden bg-stone-200"
               style={{ borderRadius: 9999 }}
             >
-              <div className="flex h-full w-full items-center justify-center text-2xl leading-none select-none">
-                🧑‍💻
-              </div>
+              <img
+                src="/Indranil.png"
+                alt="Indranil avatar"
+                className="h-full w-full object-cover"
+              />
             </motion.div>
 
             {/* Description content */}
             <motion.div
-              initial={noMotion ? false : { opacity: 0, filter: "blur(6px)", y: 6 }}
+              initial={
+                noMotion ? false : { opacity: 0, filter: "blur(6px)", y: 6 }
+              }
               animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
               exit={{ opacity: 0, filter: "blur(6px)", y: 6 }}
               transition={{ delay: 0.18, duration: 0.22 }}
               className="flex flex-col gap-1 py-0.5"
             >
-              <span className="text-sm font-bold text-white leading-none">
+              <span className="text-sm leading-none font-bold text-white">
                 Indranil Maiti
               </span>
               <span className="text-xs font-medium text-white/70">
                 Full Stack Developer
               </span>
-              <span className="text-[11px] text-white/45 leading-snug">
+              <span className="text-[11px] leading-snug text-white/45">
                 React · Next.js · Node.js · TypeScript
               </span>
-              <span className="text-[11px] text-white/45 leading-snug">
+              <span className="text-[11px] leading-snug text-white/45">
                 Building scalable web & mobile products
               </span>
-              <span className="text-[11px] text-white/45 leading-snug">
+              <span className="text-[11px] leading-snug text-white/45">
                 Open to collaborations & freelance
               </span>
             </motion.div>
@@ -226,7 +234,7 @@ export default function DynamicPortfolio01() {
               layoutId="dp-primary-btn"
               transition={spring}
               onClick={() => setView("expanded")}
-              className="flex h-10 w-10 flex-shrink-0 self-start cursor-pointer items-center justify-center bg-white/12"
+              className="flex h-10 w-10 flex-shrink-0 cursor-pointer items-center justify-center self-start bg-white/12"
               style={{ borderRadius: 9999 }}
               whileTap={noMotion ? {} : { scale: 0.93 }}
             >
