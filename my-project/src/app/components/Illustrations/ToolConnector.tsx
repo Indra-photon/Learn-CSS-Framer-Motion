@@ -69,7 +69,7 @@ export const ToolConnectorSVG = () => {
       height="100%"
     >
       <defs>
-<style type="text/css">{`
+        <style type="text/css">{`
           .cls-1  { fill:#D2D0FF; }
           .cls-2  { fill:#FFFFFF; }
           .cls-3  { fill:none; stroke:#8174E8; stroke-linecap:round; stroke-linejoin:round; stroke-miterlimit:10; stroke-dasharray:1,3; }
@@ -144,7 +144,7 @@ export const ToolConnectorSVG = () => {
       />
       {/* Icon boxes — icon-tinted backgrounds */}
       {/* Right column (x: 61→91) */}
-      <rect
+      {/* <rect
         x="59"
         y="0"
         width="30"
@@ -152,9 +152,9 @@ export const ToolConnectorSVG = () => {
         rx="5"
         fill="#51ABE6"
         fillOpacity="0.12"
-      />{" "}
+      />{" "} */}
       {/* Snowflake — blue */}
-      <rect
+      {/* <rect
         x="61"
         y="67"
         width="30"
@@ -162,9 +162,9 @@ export const ToolConnectorSVG = () => {
         rx="5"
         fill="#374F94"
         fillOpacity="0.12"
-      />{" "}
+      />{" "} */}
       {/* Facebook — indigo */}
-      <rect
+      {/* <rect
         x="61"
         y="130"
         width="30"
@@ -172,9 +172,9 @@ export const ToolConnectorSVG = () => {
         rx="5"
         fill="#F2C333"
         fillOpacity="0.15"
-      />{" "}
+      />{" "} */}
       {/* Stack cube — yellow */}
-      <rect
+      {/* <rect
         x="61"
         y="211"
         width="30"
@@ -182,10 +182,10 @@ export const ToolConnectorSVG = () => {
         rx="5"
         fill="#3395D3"
         fillOpacity="0.12"
-      />{" "}
+      />{" "} */}
       {/* Salesforce — blue */}
       {/* Left column (x: 0→28) */}
-      <rect
+      {/* <rect
         x="0"
         y="32"
         width="28"
@@ -193,9 +193,9 @@ export const ToolConnectorSVG = () => {
         rx="5"
         fill="#D7702B"
         fillOpacity="0.12"
-      />{" "}
+      />{" "} */}
       {/* Analytics — orange */}
-      <rect
+      {/* <rect
         x="0"
         y="102"
         width="28"
@@ -203,9 +203,9 @@ export const ToolConnectorSVG = () => {
         rx="5"
         fill="#52B153"
         fillOpacity="0.12"
-      />{" "}
+      />{" "} */}
       {/* Google Ads — green */}
-      <rect
+      {/* <rect
         x="0"
         y="171"
         width="28"
@@ -213,7 +213,7 @@ export const ToolConnectorSVG = () => {
         rx="5"
         fill="#4A7C35"
         fillOpacity="0.12"
-      />{" "}
+      />{" "} */}
       {/* Shopify — green */}
       {/* Right output panel */}
       {/* <path className="cls-5" d="m273.5 91.5h36.5v53.4h-36.9c-3.5 0-5.9-2.8-5.9-5.9v-41.1c0-3.4 2.4-6.4 6.3-6.4z" /> */}
@@ -399,9 +399,56 @@ export const ToolConnectorSVG = () => {
 
 export default function ToolConnector() {
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="w-full max-w-[520px] px-8">
-        <ToolConnectorSVG />
+    <div className="flex min-h-screen items-center justify-center bg-stone-50 p-8">
+      <div className="w-full max-w-sm">
+        {/* Outer shell: rounded-[26px] + p-[10px] → inner must be rounded-2xl (16px). 26−10=16 ✓ */}
+        <div className="rounded-[26px] border border-stone-200/70 bg-stone-100 p-[10px] shadow-sm shadow-stone-200/60">
+          {/* Inner card: rounded-2xl (16px). Overflow hidden clips the SVG cleanly. */}
+          <div className="overflow-hidden rounded-2xl border border-stone-100 bg-white">
+            {/* Illustration */}
+            <div className="px-6 pt-6">
+              <ToolConnectorSVG />
+            </div>
+
+            {/* Text content */}
+            <div className="px-6 pb-6 pt-5">
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-stone-400">
+                Integrations
+              </p>
+              <h2 className="text-balance text-lg font-semibold tracking-tight text-stone-900">
+                Connect every tool in your stack
+              </h2>
+              <p className="mt-2 text-pretty text-sm leading-relaxed text-stone-500">
+                Route data from any source into your pipeline automatically.
+                No configuration, no code — just connections that work.
+              </p>
+
+              {/* CTAs */}
+              <div className="mt-5 flex items-center gap-4">
+                {/* Primary — rounded-lg (8px) sits inside rounded-2xl + p-6 (24px). 16+10=26 outer ✓ */}
+                <button className="group inline-flex items-center gap-1.5 rounded-lg bg-stone-900 px-4 py-2 text-sm font-medium text-white transition-[transform,background-color] duration-150 hover:bg-stone-800 active:scale-[0.96]">
+                  Get started
+                  <svg
+                    className="h-3.5 w-3.5 transition-transform duration-150 group-hover:translate-x-0.5"
+                    viewBox="0 0 14 14"
+                    fill="none"
+                  >
+                    <path
+                      d="M1 7h12M8 2l5 5-5 5"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+                <button className="text-sm font-medium text-stone-400 transition-colors duration-150 hover:text-stone-900">
+                  View docs
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
