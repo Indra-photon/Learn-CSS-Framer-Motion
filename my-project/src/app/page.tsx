@@ -13,7 +13,10 @@ import RAGPipelineSetup from "./Emil-course/RAGPipelineSetup";
 import SearchButtonDemo from "./components/SearchButtonDemo";
 import BuyMeaCoffeeButton from "./components/learning02/BuyMeaCoffeeButton";
 import MotionValueBasics from "./Emil-course/hooks/MotionValueBasics";
+import Accordion from "./UI-Component/Acoordion";
+import PerspectiveScroll from "./Learn from Oliver/PerspectiveScroll";
+import GravityDropReveal from "./Learn from Oliver/GravityDropReveal";
 
 export default function Home() {
-  return <MotionValueBasics />;
+  return <PerspectiveScroll />;
 }
