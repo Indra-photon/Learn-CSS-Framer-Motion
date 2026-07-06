@@ -10,13 +10,17 @@ import ProfileCard from "./components/learning02/ProfileCard";
 import TravelCardBooking from "./components/learning02/TravelCardBooking";
 import TravelCard from "./components/TravelCard";
 import RAGPipelineSetup from "./Emil-course/RAGPipelineSetup";
-import SearchButtonDemo from "./components/SearchButtonDemo";
 import BuyMeaCoffeeButton from "./components/learning02/BuyMeaCoffeeButton";
 import MotionValueBasics from "./Emil-course/hooks/MotionValueBasics";
 import Accordion from "./UI-Component/Acoordion";
 import PerspectiveScroll from "./Learn from Oliver/PerspectiveScroll";
 import GravityDropReveal from "./Learn from Oliver/GravityDropReveal";
+import TimeLineScroll from "./Learn from Oliver/TimeLineScroll";
+import CarotShape from "./CSS Tips/CarotShape";
+import AnimateBackdropBlur from "./CSS Tips/AnimateBackdropBlur";
+import StudioTeamSection from "./Learn from Oliver/StudioTeamSection";
+import PostImageMorph from "./Learn from Oliver/PostImageMorph";
 
 export default function Home() {
-  return <PerspectiveScroll />;
+  return <BottomFilterBar />;
 }
