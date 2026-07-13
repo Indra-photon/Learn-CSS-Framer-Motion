@@ -20,7 +20,9 @@ import CarotShape from "./CSS Tips/CarotShape";
 import AnimateBackdropBlur from "./CSS Tips/AnimateBackdropBlur";
 import StudioTeamSection from "./Learn from Oliver/StudioTeamSection";
 import PostImageMorph from "./Learn from Oliver/PostImageMorph";
+import RippleInputDemo from "./components/ripple-input/RippleInputDemo";
+import TeletypeClock from "./components/TeleType";
 
 export default function Home() {
-  return <BottomFilterBar />;
+  return <TeletypeClock />;
 }
