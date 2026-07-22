@@ -1,4 +1,4 @@
-import { Profile } from "@hugeicons/core-free-icons";
+import { Pi, Profile } from "@hugeicons/core-free-icons";
 import BottomFilterBar from "./components/learning02/BottomFilterBar";
 import DetachableAccordion from "./components/learning02/DetachableAccordion";
 import EbayCategoryTicker from "./components/learning02/EbayCategoryTicker";
@@ -22,7 +22,47 @@ import StudioTeamSection from "./Learn from Oliver/StudioTeamSection";
 import PostImageMorph from "./Learn from Oliver/PostImageMorph";
 import RippleInputDemo from "./components/ripple-input/RippleInputDemo";
 import TeletypeClock from "./components/TeleType";
+import ScrollTeletypeClock from "./components/teletype/ScrollTeletypeClock";
+import PerspectiveTeletypeClock from "./components/teletype/PerspectiveTeletypeClock";
+import EasingControlBar from "./components/teletype/EasingControlBar";
+import { TransitionConfigProvider } from "./components/teletype/TransitionConfigContext";
+import StageTransitionCard from "./components/StageTransitionCard";
+import HotelStackFanCard from "./components/HotelStackFanCard";
+import FrostedModal from "./components/FrostedModal";
+import SimpleBlurNav from "./components/SimpleBlurNav";
+import StickyFrostedNav from "./components/StickyFrostedNav";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Home01Icon,
+  Search01Icon,
+  Compass01Icon,
+  Notification01Icon,
+  Message01Icon,
+  Bookmark01Icon,
+  UserIcon,
+} from "@hugeicons/core-free-icons";
+import {
+  MarkerFilters,
+  TranslucentHighlighter,
+  WobblyHighlighter,
+  ImperfectHighlighter,
+  ScribbleFillHighlighter,
+  WetInkHighlighter,
+} from "./CSS Tips/SlantedHighlighter";
+import PixelCard from "./CSS Tips/PixelCard";
+
+const DEMO_NAV_ITEMS = [
+  { label: "Home", icon: Home01Icon },
+  { label: "Search", icon: Search01Icon },
+  { label: "Explore", icon: Compass01Icon },
+  { label: "Notifications", icon: Notification01Icon },
+  { label: "Messages", icon: Message01Icon },
+  { label: "Saved", icon: Bookmark01Icon },
+  { label: "Profile", icon: UserIcon },
+];
 
 export default function Home() {
-  return <TeletypeClock />;
+  return (
+    <div className="no-filter relative flex min-h-screen flex-col items-center justify-center overflow-hidden p-8"></div>
+  );
 }

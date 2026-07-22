@@ -450,3 +450,204 @@ section {
   --scroll-mask-fade-from-r: --value(percentage);
   --scroll-mask-fade-from-r: --value([length], [percentage]);
 }
+
+/* Hand-drawn highlighter demos.
+   Ink is painted in ::before BEHIND the text, so the SVG wobble filter
+   only distorts the marker stroke — never the letters. */
+.hl {
+  position: relative;
+  display: inline-block;
+  /* own stacking context so the z-index:-1 ink stays above any card
+     background behind it, instead of being painted out of view. */
+  isolation: isolate;
+  padding: 0.02em 0.25em;
+  color: inherit;
+}
+
+.hl::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 0.15em;
+  /* marker un-drawn at rest. No transition here → exit snaps back instantly. */
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+/* Transition lives on :hover, so only the draw-IN animates; exit is instant.
+   Paired with the hint fade below — same easing + duration. */
+@media (hover: hover) and (pointer: fine) {
+  .hl:hover::before {
+    transform: scaleX(1);
+    transition: transform 0.28s var(--ease-out-cubic);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hl::before {
+    transform: scaleX(1);
+  }
+  .hl::after {
+    opacity: 0;
+  }
+}
+
+/* 1. Translucent: text reads through the ink via multiply blend. */
+.hl--translucent::before {
+  background: rgb(255 214 0 / 0.85);
+  mix-blend-mode: multiply;
+}
+
+/* 2. Wobbly: organic hand-drawn edges from turbulence displacement. */
+.hl--wobbly::before {
+  background: rgb(120 210 140 / 0.9);
+  mix-blend-mode: multiply;
+  filter: url(#marker-wobble);
+}
+
+/* Wet ink: feathered, blotchy bleed into the "paper". */
+.hl--wet::before {
+  background: rgb(150 90 230 / 0.5);
+  mix-blend-mode: multiply;
+  filter: url(#marker-wet);
+  border-radius: 45% 55% 60% 40%;
+}
+
+/* Resting nudge: a thin line so users know the highlight is hoverable. */
+.hl::after {
+  content: "";
+  position: absolute;
+  left: 0.25em;
+  right: 0.25em;
+  bottom: 0;
+  height: 2px;
+  z-index: -1;
+  border-radius: 2px;
+  background: currentColor;
+  opacity: 0.3;
+}
+
+/* Ink covers the line on hover, so fade the hint out — instant on exit.
+   Matches the ink swipe (0.28s / ease-out-cubic) since they move as a unit. */
+@media (hover: hover) and (pointer: fine) {
+  .hl:hover::after {
+    opacity: 0;
+    transition: opacity 0.28s var(--ease-out-cubic);
+  }
+}
+
+/* 3. Human imperfect: a hand-drawn marker circle that draws on around the text. */
+.circled {
+  position: relative;
+  display: inline-block;
+  isolation: isolate;
+}
+
+/* SVG overshoots the text on all sides so the loop wraps around the words. */
+.circled__mark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  width: 150%;
+  height: 210%;
+  z-index: -1;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.circled__mark path {
+  fill: none;
+  stroke: #e23131;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  /* keep the line ~3px no matter how the viewBox is stretched */
+  vector-effect: non-scaling-stroke;
+  /* pathLength=1, so the whole stroke is hidden, then revealed on hover */
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+/* Draw the circle on hover; exit snaps back instantly (no transition at rest).
+   ease-out: the pen "lands" fast, then eases as the loop closes. */
+@media (hover: hover) and (pointer: fine) {
+  .circled:hover .circled__mark path {
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 0.6s var(--ease-out-cubic);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .circled__mark path {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* 7. Scribble fill: a thick, semi-transparent zig-zag that draws on. */
+.scribbled {
+  position: relative;
+  display: inline-block;
+  isolation: isolate;
+}
+
+.scribbled__mark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  width: 116%;
+  height: 150%;
+  z-index: -1;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.scribbled__mark path {
+  fill: none;
+  stroke: rgb(255 190 40 / 0.55);
+  stroke-width: 14;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  mix-blend-mode: multiply;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .scribbled:hover .scribbled__mark path {
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 0.7s var(--ease-out-cubic);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scribbled__mark path {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ===== PixelCard: keyframes only — layout/styling lives in Tailwind classes ===== */
+@theme {
+  --animate-pixcard-out: pixcard-out 0.4s forwards;
+  --animate-pixcard-textin: pixcard-textin 0.5s ease both;
+}
+
+@keyframes pixcard-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes pixcard-textin {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
