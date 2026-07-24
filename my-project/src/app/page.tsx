@@ -50,6 +50,7 @@ import {
   WetInkHighlighter,
 } from "./CSS Tips/SlantedHighlighter";
 import PixelCard from "./CSS Tips/PixelCard";
+import ThemeMorphMenu from "./components/learning02/ThemeMorphMenu";
 
 const DEMO_NAV_ITEMS = [
   { label: "Home", icon: Home01Icon },
@@ -63,6 +64,8 @@ const DEMO_NAV_ITEMS = [
 
 export default function Home() {
   return (
-    <div className="no-filter relative flex min-h-screen flex-col items-center justify-center overflow-hidden p-8"></div>
+    <div className="no-filter relative flex min-h-screen flex-col items-center justify-center overflow-hidden p-8">
+      <ThemeMorphMenu />
+    </div>
   );
 }
