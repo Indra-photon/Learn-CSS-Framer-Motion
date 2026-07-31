@@ -69,7 +69,7 @@ const DEMO_NAV_ITEMS = [
 export default function Home() {
   return (
     <div className="">
-      <ChatUI />
+      <BuyMeaCoffeeButton />
     </div>
   );
 }

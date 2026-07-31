@@ -263,7 +263,7 @@ function MorphMenu({
             whileTap={{ scale: 0.96 }}
             transition={shellTransition}
             style={{ overflow: "hidden", borderRadius: 12 }}
-            className="absolute inset-y-0 left-0 inline-flex items-center gap-2 bg-stone-900 px-3.5 py-2 text-xs font-medium text-stone-100 select-none"
+            className="absolute inset-y-0 start-0 inline-flex items-center gap-2 bg-stone-900 px-3.5 py-2 text-xs font-medium text-stone-100 select-none"
           >
             <motion.span
               layout="position"
@@ -295,7 +295,7 @@ function MorphMenu({
             transition={shellTransition}
             onClick={(e) => e.stopPropagation()}
             style={{ width: panelWidth, overflow: "hidden", borderRadius: 14 }}
-            className="absolute bottom-0 left-0 z-50 bg-stone-900 p-1.5 ring-1 ring-white/10"
+            className="absolute bottom-0 start-0 z-50 bg-stone-900 p-1.5 ring-1 ring-white/10"
           >
             <motion.div
               layout="position"
@@ -379,7 +379,7 @@ export default function ChatUI() {
         onClick={(e) => e.stopPropagation()}
       >
         {/* ── Sparkle pills ───────────────────────────────────────────────── */}
-        <div className="pointer-events-none absolute top-full right-4 flex items-start gap-2 pt-1.5">
+        <div className="pointer-events-none absolute top-full end-4 flex items-start gap-2 pt-1.5">
           {menuItems.map((item, i) => {
             const active = selectedTool?.label === item.label;
             return (
@@ -436,7 +436,7 @@ export default function ChatUI() {
               animate={{ y: 0, opacity: 1, scale: 1 }}
               exit={{ y: "-110%", opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.38, ease: EASE_OUT_QUART }}
-              className="absolute top-full right-0 left-0 z-0 pt-1.5"
+              className="absolute top-full inset-x-0 z-0 pt-1.5"
             >
               <div className="flex items-start gap-3 rounded-2xl bg-stone-800/90 px-5 py-4 backdrop-blur-sm">
                 {/* Typewriter text */}
@@ -449,7 +449,7 @@ export default function ChatUI() {
                       repeat: Infinity,
                       repeatType: "reverse",
                     }}
-                    className="ml-[2px] inline-block h-[14px] w-[2px] rounded-full bg-white/70 align-middle"
+                    className="ms-[2px] inline-block h-[14px] w-[2px] rounded-full bg-white/70 align-middle"
                   />
                 </p>
 
@@ -497,13 +497,14 @@ export default function ChatUI() {
             className="w-full bg-transparent px-1.5 pb-2.5 text-base text-stone-700 placeholder-stone-400 transition-colors duration-150 ease-out outline-none focus:placeholder-stone-300"
           />
 
-          {/* Row 2 — controls */}
-          <div className="flex items-center gap-2 select-none">
+          {/* Row 2 — controls. gap-4 (16px) separates the three functional
+              groups: [add] · [mode+model] · [tools+voice]. */}
+          <div className="flex items-center gap-4 select-none">
             {/* Plus button + arc menu */}
             <motion.div
               animate={{ opacity: isRecording ? 0.35 : 1 }}
               transition={{ duration: 0.3, ease: EASE_OUT_QUART }}
-              className="relative flex h-9 w-9 flex-shrink-0 items-center justify-center"
+              className="relative flex h-8 w-8 flex-shrink-0 items-center justify-center"
             >
               {plusOpen && (
                 <div
@@ -562,12 +563,14 @@ export default function ChatUI() {
                   setMenuOpen(false);
                   setPlusOpen((v) => !v);
                 }}
-                className="relative z-20 flex h-9 w-9 items-center justify-center rounded-full text-stone-500 transition-colors before:absolute before:-inset-0.5 before:content-[''] hover:bg-stone-200 hover:text-stone-800"
+                className="relative z-20 flex h-8 w-8 items-center justify-center rounded-full text-stone-500 transition-colors before:absolute before:-inset-1 before:content-[''] hover:bg-stone-200 hover:text-stone-800"
               >
                 <HugeiconsIcon icon={Add01Icon} size={20} strokeWidth={1.8} />
               </motion.button>
             </motion.div>
 
+            {/* Mode + model selectors — one tight group (intra-gap 8px) */}
+            <div className="flex items-center gap-2">
             {/* Mode dropdown — Ask / Plan / Build */}
             <motion.div
               animate={{ opacity: isRecording ? 0.35 : 1 }}
@@ -588,7 +591,10 @@ export default function ChatUI() {
                       strokeWidth={1.5}
                       color="currentColor"
                     />
-                    {selectedMode.label}
+                    {/* Collapse to icon-only below 440px (label has an icon) */}
+                    <span className="max-[440px]:hidden">
+                      {selectedMode.label}
+                    </span>
                   </span>
                 }
                 expanded={
@@ -602,7 +608,7 @@ export default function ChatUI() {
                             setSelectedMode(mode);
                             setOpenMenu(null);
                           }}
-                          className={`flex flex-col gap-1.5 rounded-[18px] px-3 py-2 text-left transition-[background-color,transform] select-none active:scale-[0.96] ${
+                          className={`flex flex-col gap-1.5 rounded-[18px] px-3 py-2 text-start transition-[background-color,transform] select-none active:scale-[0.96] ${
                             active ? "bg-white/10" : "hover:bg-white/5"
                           }`}
                         >
@@ -622,7 +628,7 @@ export default function ChatUI() {
                                 size={15}
                                 strokeWidth={2.2}
                                 color="oklch(0.97 0.001 106.424)"
-                                className="ml-auto"
+                                className="ms-auto"
                               />
                             )}
                           </span>
@@ -649,7 +655,14 @@ export default function ChatUI() {
                 onClose={() => setOpenMenu(null)}
                 reduceMotion={reduceMotion}
                 panelWidth={280}
-                collapsed={<span>{selectedModel.label}</span>}
+                collapsed={
+                  // No icon to fall back on: cap the width so long / localized
+                  // names truncate (with an ellipsis affordance) instead of
+                  // overflowing the row; tighten the cap below 440px.
+                  <span className="inline-block max-w-[8rem] truncate align-middle max-[440px]:max-w-[4.5rem]">
+                    {selectedModel.label}
+                  </span>
+                }
                 expanded={
                   <div className="flex flex-col">
                     {/* Model list */}
@@ -663,7 +676,7 @@ export default function ChatUI() {
                               setSelectedModel(model);
                               setOpenMenu(null);
                             }}
-                            className="flex w-full items-center gap-2.5 rounded-[22px] px-3 py-2 text-left transition-[background-color,transform] select-none hover:bg-white/5 active:scale-[0.96]"
+                            className="flex w-full items-center gap-2.5 rounded-[22px] px-3 py-2 text-start transition-[background-color,transform] select-none hover:bg-white/5 active:scale-[0.96]"
                           >
                             <span
                               className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
@@ -693,9 +706,10 @@ export default function ChatUI() {
                 }
               />
             </motion.div>
+            </div>
 
-            {/* Right actions */}
-            <div className="ml-auto flex flex-shrink-0 items-center gap-2.5">
+            {/* Right actions — tools + voice group (intra-gap 8px) */}
+            <div className="ms-auto flex flex-shrink-0 items-center gap-2">
               {/* Sparkles — dims while recording */}
               <motion.button
                 animate={{
@@ -713,7 +727,7 @@ export default function ChatUI() {
                     setMenuOpen((v) => !v);
                   }
                 }}
-                className={`relative flex h-9 w-9 items-center justify-center rounded-full transition-colors before:absolute before:-inset-0.5 before:content-[''] ${
+                className={`relative flex h-8 w-8 items-center justify-center rounded-full transition-colors before:absolute before:-inset-1 before:content-[''] ${
                   selectedTool
                     ? "bg-rose-500 text-white hover:bg-rose-600"
                     : "text-stone-500 hover:bg-stone-200 hover:text-stone-800"
@@ -752,7 +766,7 @@ export default function ChatUI() {
                   e.stopPropagation();
                   toggleRecording();
                 }}
-                className="relative flex h-9 w-9 items-center justify-center rounded-full transition-colors before:absolute before:-inset-0.5 before:content-[''] hover:bg-stone-200"
+                className="relative flex h-8 w-8 items-center justify-center rounded-full transition-colors before:absolute before:-inset-1 before:content-[''] hover:bg-stone-200"
                 animate={{ scale: isRecording ? 1.05 : 1 }}
                 whileTap={{ scale: 0.96 }}
                 transition={{ duration: 0.2, ease: EASE_OUT_QUART }}
