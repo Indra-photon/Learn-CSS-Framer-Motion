@@ -24,7 +24,10 @@ import { cn } from "@/lib/utils";
 import { QUESTION_FORMS, type QuestionDraft } from "./forms";
 import {
   Divider,
+  EASE_OUT,
   FADE,
+  ICON_STROKE_LARGE,
+  ICON_STROKE_SMALL,
   Section,
   SPRING,
   TypeSummary,
@@ -38,11 +41,15 @@ import {
 
 type View = "picker" | QuestionTypeId;
 
-/** The body swap and the header title fade as a unit, so they share this. */
+/**
+ * The container height, the body swap and the header title all belong to one
+ * navigation, so they share a duration. SPRING's `visualDuration` is set to
+ * match, which is what puts the corner morph on the same beat.
+ */
 const SWAP_DURATION = 0.27;
 
 /** How far a screen travels on its way in or out. */
-const SWAP_TRAVEL = 8;
+const SWAP_TRAVEL = 38;
 
 /** Picker is the root; every question type sits one level deeper. */
 function depthOf(view: View) {
@@ -126,7 +133,7 @@ export function QuestionDialog({
 
       <DialogContent
         showCloseButton={false}
-        className="bg-card block gap-0 overflow-hidden rounded-[28px] border-none p-0 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.28)] ring-black/5 sm:max-w-[min(700px,calc(100%-2rem))]"
+        className="bg-card block gap-0 overflow-hidden border-none p-0 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.28)] ring-black/5 sm:max-w-[min(700px,calc(100%-2rem))]"
       >
         <DialogTitle className="sr-only">Add Question</DialogTitle>
         <DialogDescription className="sr-only">
@@ -139,15 +146,15 @@ export function QuestionDialog({
             animate={{
               height: bounds.height || "auto",
               transition: {
-                duration: 0.27,
-                ease: [0.25, 1, 0.5, 1],
+                duration: SWAP_DURATION,
+                ease: EASE_OUT,
               },
             }}
           >
             <div ref={contentRef} className="">
               {/* ---- persistent chrome: lives outside AnimatePresence so the
                    corner element can morph rather than crossfade ---- */}
-              <header className="relative flex items-start justify-between px-7 pt-6">
+              <header className="relative flex items-start justify-between px-7 pt-7">
                 <motion.button
                   layoutId="question-dialog-corner"
                   transition={SPRING}
@@ -157,11 +164,15 @@ export function QuestionDialog({
                   disabled={isPicker}
                   aria-label="Back to question types"
                   onClick={() => navigate("picker")}
+                  // Radius lives in `style`, not a Tailwind class, so layout
+                  // projection can scale-correct it per corner. Set via CSS it
+                  // is invisible to Motion and gets stretched with the box.
+                  style={{ borderRadius: isPicker ? 22 : 16 }}
                   className={cn(
                     "bg-muted text-muted-foreground z-10 flex shrink-0 items-center justify-center outline-none",
                     isPicker
-                      ? "size-14 cursor-default rounded-[20px]"
-                      : "hover:bg-accent hover:text-foreground focus-visible:ring-foreground/15 size-8 rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-offset-0",
+                      ? "size-16 cursor-default"
+                      : "hover:bg-accent hover:text-foreground focus-visible:ring-foreground/15 size-8 transition-colors focus-visible:ring-2 focus-visible:ring-offset-0",
                   )}
                 >
                   {/* `layout` here counter-scales the glyph while the box morphs. */}
@@ -176,29 +187,36 @@ export function QuestionDialog({
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        transition={{ duration: 0.12 }}
+                        // Motion's tween default is easeInOut — a slow start on
+                        // something entering. Named curve, same as everywhere.
+                        transition={{ duration: 0.12, ease: EASE_OUT }}
                         className="flex"
                       >
                         <HugeiconsIcon
                           icon={isPicker ? HelpSquareIcon : ArrowLeft01Icon}
-                          size={isPicker ? 28 : 17}
-                          strokeWidth={1.7}
+                          size={isPicker ? 32 : 18}
+                          strokeWidth={
+                            isPicker ? ICON_STROKE_LARGE : ICON_STROKE_SMALL
+                          }
                         />
                       </motion.span>
                     </AnimatePresence>
                   </motion.span>
                 </motion.button>
 
-                <AnimatePresence initial={false}>
+                {/* Same variants as the body, so the two titles — the picker's
+                    headline and this one — travel with identical physics. */}
+                <AnimatePresence initial={false} custom={direction}>
                   {!isPicker && (
                     <motion.span
                       key="step-title"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      // Paired with the body swap, so it shares its duration.
+                      custom={direction}
+                      variants={bodyVariants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
                       transition={{ ...FADE, duration: SWAP_DURATION }}
-                      className="text-foreground pointer-events-none absolute inset-x-20 top-6 flex h-8 items-center justify-center text-[17px] font-semibold"
+                      className="text-foreground pointer-events-none absolute inset-x-20 top-7 flex h-8 items-center justify-center text-[17px] font-semibold"
                     >
                       Add Question
                     </motion.span>
@@ -214,7 +232,7 @@ export function QuestionDialog({
                     <HugeiconsIcon
                       icon={Cancel01Icon}
                       size={16}
-                      strokeWidth={2.2}
+                      strokeWidth={ICON_STROKE_SMALL}
                     />
                     <span className="sr-only">Close</span>
                   </Button>
@@ -238,7 +256,7 @@ export function QuestionDialog({
                   transition={{ ...FADE, duration: SWAP_DURATION }}
                 >
                   {isPicker ? (
-                    <Section className="pt-4 pb-5">
+                    <Section className="pt-4 pb-7">
                       <h2 className="text-foreground text-[26px] leading-tight font-bold tracking-tight">
                         Add Question
                       </h2>

@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  useId,
-  useState,
-  type ComponentType,
-  type ReactNode,
-} from "react";
+import { useId, useState, type ComponentType, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -22,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   FADE,
   Field,
+  ICON_STROKE_SMALL,
   Reveal,
   Section,
   SegmentedControl,
@@ -63,7 +59,7 @@ function FormLayout({
   return (
     <>
       <Section className="space-y-5 py-5">{children}</Section>
-      <Section className="pb-5">
+      <Section className="pb-7">
         <SubmitButton onClick={onSubmit}>Add Question</SubmitButton>
       </Section>
     </>
@@ -143,11 +139,13 @@ export function PhoneForm({ type, onSubmit }: QuestionFormProps) {
 
   return (
     <FormLayout
-      onSubmit={() => onSubmit({ type: type.id, question, required, settings: {} })}
+      onSubmit={() =>
+        onSubmit({ type: type.id, question, required, settings: {} })
+      }
     >
       <QuestionField value={question} onChange={setQuestion} />
 
-      <p className="text-[14px] leading-[20px] text-muted-foreground">
+      <p className="text-muted-foreground text-[14px] leading-[20px]">
         Please use the Phone Number question under the Personal Information
         section to get the phone number of the guest.
       </p>
@@ -335,7 +333,7 @@ export function OptionsForm({ type, onSubmit }: QuestionFormProps) {
       <QuestionField value={question} onChange={setQuestion} />
 
       <div className="space-y-2">
-        <p className="text-[13px] font-medium text-muted-foreground">Options</p>
+        <p className="text-muted-foreground text-[13px] font-medium">Options</p>
         <AnimatePresence initial={false} mode="popLayout">
           {options.map((option, index) => (
             <motion.div
@@ -370,9 +368,13 @@ export function OptionsForm({ type, onSubmit }: QuestionFormProps) {
                     current.filter((item) => item.id !== option.id),
                   )
                 }
-                className="flex size-9 shrink-0 items-center justify-center rounded-full text-muted-foreground outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-foreground/15 focus-visible:ring-offset-0 disabled:pointer-events-none disabled:opacity-40"
+                className="text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-foreground/15 flex size-9 shrink-0 items-center justify-center rounded-full transition-colors outline-none focus-visible:ring-2 focus-visible:ring-offset-0 disabled:pointer-events-none disabled:opacity-40"
               >
-                <HugeiconsIcon icon={Cancel01Icon} size={16} strokeWidth={2} />
+                <HugeiconsIcon
+                  icon={Cancel01Icon}
+                  size={16}
+                  strokeWidth={ICON_STROKE_SMALL}
+                />
               </button>
             </motion.div>
           ))}
@@ -386,9 +388,13 @@ export function OptionsForm({ type, onSubmit }: QuestionFormProps) {
               { id: `option-${Date.now()}`, value: "" },
             ])
           }
-          className="flex h-9 items-center gap-1.5 rounded-full px-3 text-[14px] font-medium text-muted-foreground outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-foreground/15 focus-visible:ring-offset-0"
+          className="text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-foreground/15 flex h-9 items-center gap-1.5 rounded-full px-3 text-[14px] font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-offset-0"
         >
-          <HugeiconsIcon icon={PlusSignIcon} size={16} strokeWidth={2} />
+          <HugeiconsIcon
+            icon={PlusSignIcon}
+            size={16}
+            strokeWidth={ICON_STROKE_SMALL}
+          />
           Add option
         </button>
       </div>
@@ -422,7 +428,12 @@ export function CheckboxForm({ type, onSubmit }: QuestionFormProps) {
   return (
     <FormLayout
       onSubmit={() =>
-        onSubmit({ type: type.id, question, required, settings: { helperText } })
+        onSubmit({
+          type: type.id,
+          question,
+          required,
+          settings: { helperText },
+        })
       }
     >
       <QuestionField value={question} onChange={setQuestion} />
@@ -495,7 +506,9 @@ export function WebsiteForm({ type, onSubmit }: QuestionFormProps) {
 
   return (
     <FormLayout
-      onSubmit={() => onSubmit({ type: type.id, question, required, settings: {} })}
+      onSubmit={() =>
+        onSubmit({ type: type.id, question, required, settings: {} })
+      }
     >
       <QuestionField value={question} onChange={setQuestion} />
 
