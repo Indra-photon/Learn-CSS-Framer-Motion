@@ -1,4 +1,4 @@
-import { Pi, Profile } from "@hugeicons/core-free-icons";
+import { Expand, Pi, Profile } from "@hugeicons/core-free-icons";
 import BottomFilterBar from "./components/learning02/BottomFilterBar";
 import DetachableAccordion from "./components/learning02/DetachableAccordion";
 import EbayCategoryTicker from "./components/learning02/EbayCategoryTicker";
@@ -55,6 +55,8 @@ import AlertDialogVariants from "./components/alert-dialog/AlertDialogVariants";
 import ShareInteraction from "./components/ShareInteraction";
 import DeleteButton from "./components/DeleteButton";
 import ChatUI from "./components/learning02/ChatUI";
+import ExpandingImageGallery from "./components/learning02/ExpandingImageGallery";
+import FamilyDrawer from "./Emil-course/FamilyDrawer";
 
 const DEMO_NAV_ITEMS = [
   { label: "Home", icon: Home01Icon },
@@ -69,7 +71,7 @@ const DEMO_NAV_ITEMS = [
 export default function Home() {
   return (
     <div className="">
-      <BuyMeaCoffeeButton />
+      <FamilyDrawer />
     </div>
   );
 }
