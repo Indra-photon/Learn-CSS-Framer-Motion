@@ -38,6 +38,39 @@ import {
 
 type View = "picker" | QuestionTypeId;
 
+/** The body swap and the header title fade as a unit, so they share this. */
+const SWAP_DURATION = 0.27;
+
+/** How far a screen travels on its way in or out. */
+const SWAP_TRAVEL = 8;
+
+/** Picker is the root; every question type sits one level deeper. */
+function depthOf(view: View) {
+  return view === "picker" ? 0 : 1;
+}
+
+/**
+ * Direction belongs to the transition, not to either screen: on any one
+ * navigation both screens travel the same way. Going deeper (+1) the incoming
+ * screen rises from below while the outgoing one leaves upward; coming back
+ * (-1) both reverse. A same-depth swap yields 0 and crossfades without travel.
+ *
+ * These read `direction` from the `custom` prop, which is what lets the
+ * exiting screen animate with the *current* direction instead of the one it
+ * was rendered with.
+ */
+const bodyVariants = {
+  enter: (direction: number) => ({
+    opacity: 0,
+    y: direction * SWAP_TRAVEL,
+  }),
+  center: { opacity: 1, y: 0 },
+  exit: (direction: number) => ({
+    opacity: 0,
+    y: direction * -SWAP_TRAVEL,
+  }),
+};
+
 export function QuestionDialog({
   children,
   open,
@@ -52,20 +85,34 @@ export function QuestionDialog({
 }) {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const [view, setView] = useState<View>("picker");
+  const [direction, setDirection] = useState(1);
 
   // The measured element is *inside* the animated one, so its height is always
   // the natural height of the current view and never chases its own animation.
-  const [contentRef, bounds] = useMeasure();
+  //
+  // `offsetSize` switches the hook from getBoundingClientRect to offsetHeight.
+  // That matters because DialogContent opens with a `zoom-in-95` scale: the
+  // first ResizeObserver callback lands mid-animation, and a bounding rect is
+  // transform-aware, so it would report 95% of the real height. ResizeObserver
+  // never fires again (the layout box never changed), so that short value
+  // would stick until the first navigation. offsetHeight is layout-only.
+  const [contentRef, bounds] = useMeasure({ offsetSize: true });
 
   const isOpen = open ?? uncontrolledOpen;
   const isPicker = view === "picker";
+
+  // Single entry point for navigation so direction and view can never disagree.
+  function navigate(next: View) {
+    setDirection(Math.sign(depthOf(next) - depthOf(view)));
+    setView(next);
+  }
 
   function handleOpenChange(next: boolean) {
     onOpenChange?.(next);
     if (open === undefined) setUncontrolledOpen(next);
     // Reset only after the close animation, so the last screen doesn't flash
     // back to the picker on the way out.
-    if (!next) window.setTimeout(() => setView("picker"), 180);
+    if (!next) window.setTimeout(() => navigate("picker"), 180);
   }
 
   function handleSubmit(draft: QuestionDraft) {
@@ -109,7 +156,7 @@ export function QuestionDialog({
                   // a badge, and a hidden-but-focusable control fails a11y.
                   disabled={isPicker}
                   aria-label="Back to question types"
-                  onClick={() => setView("picker")}
+                  onClick={() => navigate("picker")}
                   className={cn(
                     "bg-muted text-muted-foreground z-10 flex shrink-0 items-center justify-center outline-none",
                     isPicker
@@ -149,7 +196,8 @@ export function QuestionDialog({
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      transition={FADE}
+                      // Paired with the body swap, so it shares its duration.
+                      transition={{ ...FADE, duration: SWAP_DURATION }}
                       className="text-foreground pointer-events-none absolute inset-x-20 top-6 flex h-8 items-center justify-center text-[17px] font-semibold"
                     >
                       Add Question
@@ -174,23 +222,27 @@ export function QuestionDialog({
               </header>
 
               {/* ---- swapping body ---- */}
-              <AnimatePresence initial={false} mode="popLayout">
+              {/* `custom` on AnimatePresence is what reaches the exiting child. */}
+              <AnimatePresence
+                initial={false}
+                mode="popLayout"
+                custom={direction}
+              >
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.96 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.96 }}
+                  custom={direction}
+                  variants={bodyVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
                   key={view}
-                  transition={{
-                    duration: 0.27,
-                    ease: [0.26, 0.08, 0.25, 1],
-                  }}
+                  transition={{ ...FADE, duration: SWAP_DURATION }}
                 >
                   {isPicker ? (
                     <Section className="pt-4 pb-5">
                       <h2 className="text-foreground text-[26px] leading-tight font-bold tracking-tight">
                         Add Question
                       </h2>
-                      <p className="text-muted-foreground mt-1.5 text-[15px]">
+                      <p className="text-muted-foreground mt-1 text-[15px]">
                         Ask guests custom questions when they register.
                       </p>
                       <div className="mt-6 grid grid-cols-2 gap-3">
@@ -198,7 +250,7 @@ export function QuestionDialog({
                           <TypeTile
                             key={type.id}
                             type={type}
-                            onSelect={() => setView(type.id)}
+                            onSelect={() => navigate(type.id)}
                           />
                         ))}
                       </div>
