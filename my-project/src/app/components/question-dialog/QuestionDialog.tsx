@@ -49,7 +49,7 @@ type View = "picker" | QuestionTypeId;
 const SWAP_DURATION = 0.27;
 
 /** How far a screen travels on its way in or out. */
-const SWAP_TRAVEL = 38;
+const SWAP_TRAVEL = 45;
 
 /** Picker is the root; every question type sits one level deeper. */
 function depthOf(view: View) {
@@ -97,13 +97,13 @@ export function QuestionDialog({
   // The measured element is *inside* the animated one, so its height is always
   // the natural height of the current view and never chases its own animation.
   //
-  // `offsetSize` switches the hook from getBoundingClientRect to offsetHeight.
-  // That matters because DialogContent opens with a `zoom-in-95` scale: the
-  // first ResizeObserver callback lands mid-animation, and a bounding rect is
-  // transform-aware, so it would report 95% of the real height. ResizeObserver
-  // never fires again (the layout box never changed), so that short value
-  // would stick until the first navigation. offsetHeight is layout-only.
-  const [contentRef, bounds] = useMeasure({ offsetSize: true });
+  // Default (bounding-rect) measurement is safe here only because the panel no
+  // longer scales on open — see `zoom-in-100` above. A bounding rect is
+  // transform-aware, so under the stock `zoom-in-95` the first reading would
+  // land mid-animation at 95% and stick. The trade for keeping the zoom would
+  // be `offsetSize`, which is layout-only but rounds to whole pixels, leaving
+  // a sub-pixel gap for the height animation to crawl across on first open.
+  const [contentRef, bounds] = useMeasure();
 
   const isOpen = open ?? uncontrolledOpen;
   const isPicker = view === "picker";
@@ -133,7 +133,7 @@ export function QuestionDialog({
 
       <DialogContent
         showCloseButton={false}
-        className="bg-card block gap-0 overflow-hidden border-none p-0 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.28)] ring-black/5 sm:max-w-[min(700px,calc(100%-2rem))]"
+        className="bg-card data-open:zoom-in-100 data-closed:zoom-out-100 block gap-0 overflow-hidden border-none p-0 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.28)] ring-black/5 sm:max-w-[min(700px,calc(100%-2rem))]"
       >
         <DialogTitle className="sr-only">Add Question</DialogTitle>
         <DialogDescription className="sr-only">

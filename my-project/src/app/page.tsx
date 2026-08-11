@@ -57,6 +57,7 @@ import DeleteButton from "./components/DeleteButton";
 import ChatUI from "./components/learning02/ChatUI";
 import ExpandingImageGallery from "./components/learning02/ExpandingImageGallery";
 import FamilyDrawer from "./Emil-course/FamilyDrawer";
+import AddTask from "./components/AddTask";
 
 const DEMO_NAV_ITEMS = [
   { label: "Home", icon: Home01Icon },
@@ -71,7 +72,7 @@ const DEMO_NAV_ITEMS = [
 export default function Home() {
   return (
     <div className="">
-      <FamilyDrawer />
+      <AddTask />
     </div>
   );
 }
