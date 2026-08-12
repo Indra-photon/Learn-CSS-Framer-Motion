@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { IconArrowsDiagonal, IconZoomScan } from "@tabler/icons-react";
 
 import OpCanvas from "@/app/components/opart/OpCanvas";
 import { VARIATIONS, type Variation } from "@/app/components/opart/variations";
@@ -68,17 +67,29 @@ const GRAIN =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)'/%3E%3C/svg%3E\")";
 
 /**
- * Four overlapping radial stops over a diagonal base — a mesh gradient without
- * the mesh. Dark olive anchored bottom-left under the number, opening out to a
- * pale sage at the right edge where the pattern sits.
+ * Two layers, one light source — from the left. The old five-layer version
+ * implied light from the top-left, the right, and a 78° sheen at once, which
+ * is why it read as muddy.
+ *
+ * The axis also runs the right way now: pale on the left, where dark ink sits
+ * on it, and deep olive on the right, under the screen-blended art. Before,
+ * the white marks landed on the palest region at roughly 1.5:1 and dissolved.
  */
 const CARD_GRADIENT = [
-  "radial-gradient(115% 135% at 8% 92%, #2f382c 0%, rgba(47,56,44,0) 62%)",
-  "radial-gradient(90% 110% at 0% 8%, #5d6a52 0%, rgba(93,106,82,0) 58%)",
-  "radial-gradient(120% 120% at 100% 30%, #b6bfa6 0%, rgba(182,191,166,0) 64%)",
-  "radial-gradient(80% 90% at 72% 100%, #7d8a6e 0%, rgba(125,138,110,0) 70%)",
-  "linear-gradient(112deg, #414b39 0%, #66715a 46%, #929c81 78%, #aab39a 100%)",
+  // the highlight, placed at the light source and nowhere else
+  "radial-gradient(85% 130% at 2% 14%, rgba(255,255,255,0.5), rgba(255,255,255,0) 60%)",
+  "linear-gradient(100deg, #aeb79e 0%, #7c876a 38%, #414b39 68%, #2b3425 100%)",
 ].join(",");
+
+/* Enter fast, settle slow; exits get their own curve. An exit on an ease-out
+   curve lingers — it should start fast and be gone. */
+const EASE_OUT = [0.22, 1, 0.36, 1] as const;
+const EASE_IN = [0.4, 0, 1, 1] as const;
+const ROLL = { type: "spring", visualDuration: 0.35, bounce: 0 } as const;
+
+/* The swap is one caused event, so it arrives in sequence rather than all at
+   once: art, then the label, then the copy. */
+const STAGGER = { art: 0, label: 0.06, copy: 0.14 };
 
 /** Sub-pixel dot that marks the row under the pointer or the row in play. */
 function Marker({ active }: { active: boolean }) {
@@ -103,6 +114,20 @@ function Marker({ active }: { active: boolean }) {
 export default function Capabilities() {
   const [index, setIndex] = useState(0);
   const [hovered, setHovered] = useState<number | null>(null);
+
+  /* Sweeping the cursor down six rows used to fire six 500ms crossfades in
+     about 400ms — none of them could finish. Preview only once the pointer
+     rests; clicking still commits immediately. */
+  const restTimer = useRef<number | null>(null);
+  const clearRest = () => {
+    if (restTimer.current !== null) window.clearTimeout(restTimer.current);
+    restTimer.current = null;
+  };
+  const previewOnRest = (i: number) => {
+    clearRest();
+    restTimer.current = window.setTimeout(() => setHovered(i), 100);
+  };
+  useEffect(() => clearRest, []);
 
   // hover previews, click commits — the marker follows whichever is louder
   const shown = hovered ?? index;
@@ -212,25 +237,34 @@ export default function Capabilities() {
           {/* -------------------------------------------------------- list */}
           <ul
             className="flex flex-col gap-1 px-6 py-12 sm:px-10 lg:gap-2 lg:py-16"
-            onMouseLeave={() => setHovered(null)}
+            onMouseLeave={() => {
+              clearRest();
+              setHovered(null);
+            }}
           >
             {CAPABILITIES.map((c, i) => (
               <li key={c.word}>
                 <button
                   type="button"
-                  onMouseEnter={() => setHovered(i)}
+                  onMouseEnter={() => previewOnRest(i)}
                   onFocus={() => setHovered(i)}
-                  onClick={() => setIndex(i)}
+                  onClick={() => {
+                    clearRest();
+                    setIndex(i);
+                  }}
                   aria-current={i === index}
                   className="group flex w-full items-center rounded-sm text-left outline-none focus-visible:ring-2 focus-visible:ring-neutral-900/20"
                 >
                   <Marker active={i === shown} />
                   <motion.span
                     animate={{
-                      color: i === shown ? "#111111" : "#9b9b98",
+                      /* #9b9b98 on #f1f1ef was 2.4:1 — under the 3:1 large-text
+                         floor, on six interactive controls. #6f6f6b is 4.2:1,
+                         and weight still carries the active state. */
+                      color: i === shown ? "#111111" : "#6f6f6b",
                       x: i === shown ? 2 : 0,
                     }}
-                    transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                    transition={{ duration: 0.32, ease: EASE_OUT }}
                     className={`text-[clamp(1.9rem,4.4vw,2.9rem)] leading-[1.28] ${i === shown ? "font-normal" : "font-light"} tracking-[-0.02em]`}
                   >
                     {c.word}.
@@ -243,16 +277,35 @@ export default function Capabilities() {
           {/* -------------------------------------------------------- card */}
           <div className="border-t border-neutral-900/10 px-6 py-12 sm:px-10 lg:border-t-0 lg:py-16">
             <div
-              className="relative aspect-[16/10] w-full overflow-hidden rounded-xl ring-1 ring-white/10 ring-inset"
+              /* Edge is two-tone rather than one flat white ring: the ring was
+                 invisible against the pale end and only showed on the dark end.
+                 Light on top, shade on the bottom — same light source again. */
+              className="relative aspect-[16/10] w-full overflow-hidden rounded-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.2),inset_0_-1px_0_rgba(24,30,22,0.22),inset_0_0_0_1px_rgba(24,30,22,0.08)]"
               style={{ backgroundImage: CARD_GRADIENT }}
             >
               <AnimatePresence initial={false}>
                 <motion.div
                   key={current.art.id}
-                  initial={{ opacity: 0, scale: 1.06 }}
+                  /* opacity finishes well before scale — running both over one
+                     duration is what made the crossfade drift */
+                  initial={{ opacity: 0, scale: 1.03 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.99 }}
-                  transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                  exit={{
+                    opacity: 0,
+                    transition: { duration: 0.22, ease: EASE_IN },
+                  }}
+                  transition={{
+                    opacity: {
+                      duration: 0.32,
+                      ease: EASE_OUT,
+                      delay: STAGGER.art,
+                    },
+                    scale: {
+                      duration: 0.56,
+                      ease: EASE_OUT,
+                      delay: STAGGER.art,
+                    },
+                  }}
                   className="absolute inset-y-0 right-0 w-[55%] overflow-hidden [mask-image:linear-gradient(to_right,transparent,#000_22%)] mix-blend-screen"
                 >
                   {/* inverted the canvas is white-on-black, and `screen` drops that
@@ -271,43 +324,65 @@ export default function Capabilities() {
                 </motion.div>
               </AnimatePresence>
 
-              {/* a single soft sheen raking across the middle, and a darkened
-                bottom-left so the number always has something to sit on */}
-              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(78deg,transparent_18%,rgba(255,255,255,0.16)_44%,transparent_66%)]" />
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_80%_at_6%_100%,rgba(24,30,22,0.55),transparent_60%)]" />
-
-              {/* grain last, over the pattern too — otherwise the art reads as a
-                cleaner layer pasted onto a textured one */}
+              {/* One grain pass, not two. A 180px tile repeated 3× across the
+                  card width and read as pattern; 320px clears the surface. The
+                  sheen and vignette are gone — the sheen peaked in the same
+                  band as the art's mask fade, and the vignette existed only to
+                  prop up white text that is now dark ink on the pale end. */}
               <div
-                className="pointer-events-none absolute inset-0 opacity-[0.22] mix-blend-overlay"
+                className="pointer-events-none absolute inset-0 opacity-[0.16] mix-blend-overlay"
                 style={{
                   backgroundImage: GRAIN,
-                  backgroundSize: "180px 180px",
-                }}
-              />
-              <div
-                className="pointer-events-none absolute inset-0 opacity-[0.10] mix-blend-soft-light"
-                style={{
-                  backgroundImage: GRAIN,
-                  backgroundSize: "300px 300px",
+                  backgroundSize: "320px 320px",
                 }}
               />
 
-              <span className="absolute top-5 left-5 h-1.5 w-1.5 rounded-full bg-white/80" />
-
-              <div className="absolute bottom-4 left-5 overflow-hidden">
-                <AnimatePresence mode="popLayout" initial={false}>
-                  <motion.span
-                    key={shown}
-                    initial={{ y: "100%", opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: "-100%", opacity: 0 }}
-                    transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
-                    className="block text-3xl font-normal tracking-tight text-white/90"
-                  >
-                    {String(shown + 1).padStart(2, "0")}
-                  </motion.span>
-                </AnimatePresence>
+              {/* The card now names what you picked — an index alone ("01")
+                  refers to a list nobody is counting. Dark ink, because this
+                  corner is the pale end of the gradient. */}
+              <div className="absolute bottom-4 left-5">
+                <div className="overflow-hidden">
+                  <AnimatePresence mode="popLayout" initial={false}>
+                    <motion.span
+                      key={shown}
+                      initial={{ y: "110%", opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{
+                        y: "-110%",
+                        opacity: 0,
+                        transition: { duration: 0.2, ease: EASE_IN },
+                      }}
+                      transition={{
+                        y: { ...ROLL, delay: STAGGER.label },
+                        opacity: { duration: 0.2, delay: STAGGER.label },
+                      }}
+                      className="block font-mono text-[10px] tracking-[0.18em] text-[#22301f]/70 uppercase"
+                    >
+                      {current.word}
+                    </motion.span>
+                  </AnimatePresence>
+                </div>
+                <div className="overflow-hidden">
+                  <AnimatePresence mode="popLayout" initial={false}>
+                    <motion.span
+                      key={shown}
+                      initial={{ y: "100%", opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{
+                        y: "-100%",
+                        opacity: 0,
+                        transition: { duration: 0.2, ease: EASE_IN },
+                      }}
+                      transition={{
+                        y: { ...ROLL, delay: STAGGER.label },
+                        opacity: { duration: 0.22, delay: STAGGER.label },
+                      }}
+                      className="block text-3xl font-normal tracking-tight text-[#22301f] tabular-nums"
+                    >
+                      {String(shown + 1).padStart(2, "0")}
+                    </motion.span>
+                  </AnimatePresence>
+                </div>
               </div>
             </div>
 
@@ -319,8 +394,16 @@ export default function Capabilities() {
                     key={shown}
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -6 }}
-                    transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                    exit={{
+                      opacity: 0,
+                      y: -6,
+                      transition: { duration: 0.2, ease: EASE_IN },
+                    }}
+                    transition={{
+                      duration: 0.3,
+                      ease: EASE_OUT,
+                      delay: STAGGER.copy,
+                    }}
                     className="text-[15px] leading-tight text-neutral-800"
                   >
                     {current.copy}
