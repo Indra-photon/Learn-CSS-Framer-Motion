@@ -64,6 +64,21 @@
   --color-chart-foreground-muted: var(----chart-foreground-muted);
   --color-chart-foreground: var(----chart-foreground);
   --color-chart-background: var(----chart-background);
+  --team-ring: var(--team-ring);
+  --team-fg-muted: var(--team-fg-muted);
+  --team-fg-soft: var(--team-fg-soft);
+  --team-fg: var(--team-fg);
+  --team-surface: var(--team-surface);
+  --avatar-ring: var(--avatar-ring);
+  --avatar-border: var(--avatar-border);
+  --avatar-muted: var(--avatar-muted);
+  --avatar-fg: var(--avatar-fg);
+  --avatar-surface: var(--avatar-surface);
+  --gallery-radius: 4px;
+  --color-gallery-frame: var(--gallery-frame);
+  --color-gallery-label-muted: var(--gallery-label-muted);
+  --color-gallery-label: var(--gallery-label);
+  --color-gallery-scrim: var(--gallery-scrim);
 }
 
 /* @theme {
@@ -130,6 +145,24 @@
   --chart-marker-foreground: oklch(0.3 0.01 260);
   --chart-ring-background: oklch(0.9 0.005 260 / 0.25);
   --chart-label: oklch(0.45 0.01 260);
+  --avatar-surface: var(--background, oklch(1 0 0));
+  --avatar-fg: var(--foreground, oklch(0.145 0 0));
+  --avatar-muted: var(--muted, oklch(0.97 0 0));
+  --avatar-border: var(--border, oklch(0.922 0 0));
+  --avatar-ring: var(--ring, oklch(0.708 0 0));
+  --team-surface: var(--background, oklch(1 0 0));
+  --team-fg: var(--foreground, oklch(0.145 0 0));
+  --team-fg-soft: color-mix(
+    in oklab,
+    var(--foreground, oklch(0.145 0 0)) 70%,
+    transparent
+  );
+  --team-fg-muted: var(--muted-foreground, oklch(0.556 0 0));
+  --team-ring: var(--ring, oklch(0.708 0 0));
+  --gallery-scrim: oklch(0 0 0 / 0.88);
+  --gallery-label: oklch(1 0 0);
+  --gallery-label-muted: oklch(1 0 0 / 0.74);
+  --gallery-frame: oklch(1 0 0 / 0.55);
 }
 
 :root {
@@ -200,6 +233,24 @@
   --chart-marker-foreground: oklch(0.9 0 0);
   --chart-ring-background: oklch(0.35 0.01 260 / 0.25);
   --chart-label: oklch(0.75 0.01 260);
+  --avatar-surface: var(--background, oklch(0.145 0 0));
+  --avatar-fg: var(--foreground, oklch(0.985 0 0));
+  --avatar-muted: var(--muted, oklch(0.269 0 0));
+  --avatar-border: var(--border, oklch(1 0 0 / 10%));
+  --avatar-ring: var(--ring, oklch(0.556 0 0));
+  --team-surface: var(--background, oklch(0.145 0 0));
+  --team-fg: var(--foreground, oklch(0.985 0 0));
+  --team-fg-soft: color-mix(
+    in oklab,
+    var(--foreground, oklch(0.985 0 0)) 70%,
+    transparent
+  );
+  --team-fg-muted: var(--muted-foreground, oklch(0.708 0 0));
+  --team-ring: var(--ring, oklch(0.556 0 0));
+  --gallery-scrim: oklch(0 0 0 / 0.9);
+  --gallery-label: oklch(1 0 0);
+  --gallery-label-muted: oklch(1 0 0 / 0.74);
+  --gallery-frame: oklch(1 0 0 / 0.55);
 }
 
 @layer base {
@@ -243,22 +294,6 @@
     corner-shape: square;
   }
 } */
-
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  mix-blend-mode: difference;
-  background: white;
-  border-bottom-left-radius: 100%;
-  corner-shape: notch;
-  animation-name: bend-it-like-beckham;
-  animation-duration: auto;
-  animation-timing-function: linear;
-  animation-fill-mode: both;
-  animation-timeline: scroll(root);
-}
 
 /* Added to cards */
 .no-filter {
