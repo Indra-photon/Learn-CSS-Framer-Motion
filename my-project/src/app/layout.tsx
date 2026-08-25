@@ -1,11 +1,26 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Figtree } from "next/font/google";
+import {
+  Geist,
+  Geist_Mono,
+  Figtree,
+  Instrument_Serif,
+} from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { DialRoot } from "dialkit";
 import "dialkit/styles.css";
 
 const figtree = Figtree({ subsets: ["latin"], variable: "--font-sans" });
+
+/* Display serif. Used for the italic accents inside the hero-split
+ * headline chips and for the numerals in its dashboard mock — both need
+ * a face with real italic drawing, which the sans does not have. */
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
+  variable: "--font-instrument-serif",
+});
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,7 +43,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("font-sans", figtree.variable)}>
+    <html
+      lang="en"
+      className={cn("font-sans", figtree.variable, instrumentSerif.variable)}
+    >
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
