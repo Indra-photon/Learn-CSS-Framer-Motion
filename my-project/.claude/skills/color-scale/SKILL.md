@@ -1,6 +1,24 @@
 ---
 name: color-scale
 description: Generate a block-scoped semantic color palette from a Tailwind color family. Invoke explicitly with /color-scale <color> <block-name> [--status]. Produces 11 semantic roles (Radix's scale structure, Tailwind's colors) as a co-located CSS file, light and dark, contrast-verified.
+invoke: /color-scale <family> <block-name> [--neutral <family>] [--status]
+
+  Examples:
+
+  /color-scale blue pricing-card
+  /color-scale violet hero --status
+  /color-scale emerald stats --neutral zinc
+  /color-scale rose testimonial
+
+  If you leave off the color, it asks you which Tailwind family to use:
+
+  /color-scale
+
+  Arguments:
+- family — any Tailwind color (blue, violet, emerald, rose, amber, …)
+- block-name — becomes the CSS class and the filename, e.g. src/components/blocks/pricing-card.css
+- --neutral — override the auto-paired gray (slate, gray, zinc, stone, neutral)
+- --status — also generate danger / success / warning scales
 ---
 
 # color-scale
