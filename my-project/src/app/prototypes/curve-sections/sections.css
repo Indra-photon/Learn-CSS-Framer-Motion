@@ -1,0 +1,238 @@
+/* Second prototype surface. Each section owns its own composition — the
+ * shared shell stops at colour and type, deliberately, because the whole
+ * point of this round is that the sections do not look alike. */
+
+.cs-stage {
+  --ink: #f4f3ef;
+  --ink-dim: #8d8d86;
+  --ground: #0b0b0c;
+  --rule: rgba(244, 243, 239, 0.12);
+  --accent: #d8f24e;
+
+  background: var(--ground);
+  color: var(--ink);
+  min-height: 100svh;
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+.cs-runway {
+  height: 95svh;
+}
+
+.cs-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(24px, 3.4vw, 48px);
+  padding: 10vh 5vw;
+  min-height: 100svh;
+  justify-content: center;
+}
+
+.cs-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.cs-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.cs-copy {
+  margin: 0;
+  max-width: 54ch;
+  font-size: clamp(13px, 1.05vw, 15px);
+  line-height: 1.65;
+  color: var(--ink-dim);
+}
+
+.cs-copy--center {
+  text-align: center;
+}
+
+/* Glyph boxes, shared with the first surface. */
+.ct-glyph {
+  display: inline-block;
+  white-space: pre;
+}
+
+.ct-glyph-inner {
+  display: inline-block;
+  white-space: pre;
+  transform-origin: 50% 50%;
+  backface-visibility: hidden;
+}
+
+/* ── Orbit ──────────────────────────────────────────────────────────── */
+
+.cs-orbit-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(560px, 84vw);
+  aspect-ratio: 1;
+}
+
+.cs-orbit-ring {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  /* The ring's own geometry positions the glyphs; this box only has to
+     put the line's centre at the circle's top. */
+  align-content: start;
+  padding-top: 6%;
+}
+
+.cs-orbit-text {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: clamp(10px, 1.25vw, 15px);
+  letter-spacing: 0.06em;
+  color: var(--ink-dim);
+  white-space: pre;
+}
+
+.cs-orbit-core {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.cs-orbit-product {
+  width: min(210px, 40vw);
+  aspect-ratio: 3 / 4;
+  border-radius: 8px;
+  background:
+    radial-gradient(120% 90% at 30% 12%, #4a4f45 0%, #23261f 46%, #101109 100%);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+}
+
+.cs-orbit-name {
+  margin: 14px 0 0;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+}
+
+.cs-orbit-price {
+  margin: 0;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--accent);
+}
+
+/* ── River ──────────────────────────────────────────────────────────── */
+
+.cs-river-column {
+  width: min(720px, 92vw);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cs-river-line {
+  margin: 0;
+  font-size: clamp(15px, 1.9vw, 25px);
+  line-height: 1.5;
+  letter-spacing: -0.012em;
+  white-space: nowrap;
+  color: var(--ink);
+}
+
+/* ── Terrain ────────────────────────────────────────────────────────── */
+
+.cs-terrain {
+  gap: 0;
+  padding: 0;
+  justify-content: stretch;
+}
+
+.cs-terrain-field {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(2px, 0.5vh, 8px);
+  overflow: hidden;
+  padding: 8vh 0;
+  touch-action: none;
+}
+
+.cs-terrain-row {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: clamp(9px, 1.15vw, 15px);
+  letter-spacing: 0.16em;
+  white-space: pre;
+  text-align: center;
+  color: rgba(244, 243, 239, 0.34);
+}
+
+/* A little tonal depth so the field reads as a surface, not a grid. */
+.cs-terrain-row[data-row="8"],
+.cs-terrain-row[data-row="9"],
+.cs-terrain-row[data-row="10"],
+.cs-terrain-row[data-row="11"] {
+  color: rgba(244, 243, 239, 0.62);
+}
+
+.cs-terrain-caption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 0 5vw 12vh;
+  text-align: center;
+}
+
+/* ── Flip ───────────────────────────────────────────────────────────── */
+
+.cs-flip-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(28px, 6vw, 96px);
+}
+
+.cs-flip-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-width: 180px;
+}
+
+.cs-flip-value {
+  margin: 0;
+  font-size: clamp(40px, 6.4vw, 88px);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  white-space: nowrap;
+  /* Flaps turn about their own top edge, like a board leaf. */
+}
+
+.cs-flip-value .ct-glyph-inner {
+  transform-origin: 50% 0%;
+}
+
+.cs-flip-label {
+  margin: 0;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}

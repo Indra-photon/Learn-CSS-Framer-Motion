@@ -1,0 +1,110 @@
+/* Third surface: everything here is at reading scale. The whole round is
+ * an argument that this engine survives body copy, so the shell stays out
+ * of the way — one column, one measure, no display type anywhere. */
+
+.cp-stage {
+  --ink: #f4f3ef;
+  --ink-dim: #8d8d86;
+  --ground: #0b0b0c;
+  --accent: #d8f24e;
+
+  background: var(--ground);
+  color: var(--ink);
+  min-height: 100svh;
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/* Scroll-driven variants need somewhere to be scrolled through. Without
+ * this the section exactly fills the viewport, the page has no scroll
+ * range, and every scroll-linked input is frozen. */
+.cp-runway {
+  height: 95svh;
+}
+
+.cp-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(28px, 4vw, 52px);
+  min-height: 100svh;
+  padding: 14vh 5vw;
+}
+
+.cp-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.cp-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.cp-column {
+  width: min(760px, 94vw);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cp-line {
+  margin: 0;
+  font-size: clamp(15px, 1.95vw, 26px);
+  line-height: 1.52;
+  letter-spacing: -0.012em;
+  white-space: nowrap;
+  color: var(--ink);
+}
+
+.cp-line--focus {
+  /* Blur and opacity are set inline per line, from the focal distance. */
+  transition: none;
+  will-change: filter, opacity;
+}
+
+.cp-note {
+  margin: 0;
+  max-width: 56ch;
+  text-align: center;
+  font-size: clamp(12px, 1vw, 14px);
+  line-height: 1.65;
+  color: var(--ink-dim);
+}
+
+/* Glyph boxes, shared with the other surfaces. */
+.ct-glyph {
+  display: inline-block;
+  white-space: pre;
+}
+
+.ct-glyph-inner {
+  display: inline-block;
+  white-space: pre;
+  transform-origin: 50% 50%;
+  backface-visibility: hidden;
+}
+
+/* Scramble needs fixed advance widths — see the note in the component. */
+.cp-column--mono .cp-line,
+.cp-line--mono {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: clamp(12px, 1.5vw, 20px);
+  letter-spacing: 0.02em;
+}
+
+.cp-column--magnet {
+  /* The dent follows the pointer anywhere over the block, including the
+     gaps between lines. */
+  padding: 24px 0;
+  touch-action: none;
+}

@@ -1,0 +1,90 @@
+/* Scoped palette for the block. Olive page ground, near-black card —
+ * read off the reference frame, kept as roles so the card can be dropped
+ * onto another background without hunting hex values. */
+.negroni-scene {
+  --scene-bg: #3d4a41;
+  --card-bg: #0a0a0a;
+  --card-radius: 20px;
+  --headline-ink: #ffffff;
+  --body-ink: #9b9b9b;
+
+  background: var(--scene-bg);
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6vw 4vw;
+}
+
+/* The scene is scrolled past, so it needs runway above and below for the
+ * card to enter and exit the viewport and re-arm the animation. */
+.negroni-runway {
+  background: var(--scene-bg);
+  height: 100svh;
+}
+
+.negroni-card {
+  width: min(1120px, 100%);
+  aspect-ratio: 16 / 10;
+  background: var(--card-bg);
+  border-radius: var(--card-radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(20px, 3.2vw, 44px);
+  padding: clamp(24px, 5vw, 72px);
+}
+
+.negroni-thumb {
+  width: clamp(56px, 6.4vw, 88px);
+  height: clamp(56px, 6.4vw, 88px);
+  border-radius: 22%;
+  display: block;
+  flex: none;
+}
+
+/* Per-character stagger needs each glyph to be its own box, but the line
+ * must still break and center like normal text. */
+.negroni-headline {
+  margin: 0;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-weight: 500;
+  font-size: clamp(48px, 9.5vw, 132px);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  color: var(--headline-ink);
+  text-align: center;
+  white-space: nowrap;
+  position: relative;
+}
+
+/* Outer span keeps the glyph's untransformed slot in normal text flow —
+ * it is what the arc geometry is measured from. The inner span carries
+ * the transform, so measuring and painting never fight. */
+.negroni-char {
+  display: inline-block;
+  white-space: pre;
+}
+
+.negroni-char-inner {
+  display: inline-block;
+  white-space: pre;
+  transform-origin: 50% 50%;
+  backface-visibility: hidden;
+  /* `will-change` is set from JS only while the curve is bent — see the
+   * paint step in NegroniCard.tsx. Fifteen permanently promoted layers
+   * behind a 132px face is not worth paying for at rest. */
+}
+
+.negroni-copy {
+  margin: 0;
+  max-width: 46ch;
+  text-align: center;
+  color: var(--body-ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(11px, 1.05vw, 14px);
+  line-height: 1.65;
+  letter-spacing: 0.005em;
+}
