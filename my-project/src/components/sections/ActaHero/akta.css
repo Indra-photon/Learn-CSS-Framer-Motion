@@ -59,6 +59,50 @@
   --text-akta-display-xl--line-height: 1;
   --text-akta-display-xl--letter-spacing: -0.03em;
   --text-akta-display-xl--font-weight: 400;
+  /* section headline — h2 */
+  --text-akta-heading-48: 32px;
+  --text-akta-heading-48--line-height: 1.12;
+  --text-akta-heading-48--letter-spacing: -0.06em;
+  --text-akta-heading-48--font-weight: 400;
+  --text-akta-heading-48-sm: 40px;
+  --text-akta-heading-48-sm--line-height: 1.1;
+  --text-akta-heading-48-sm--letter-spacing: -0.06em;
+  --text-akta-heading-48-sm--font-weight: 400;
+  --text-akta-heading-48-lg: 48px;
+  --text-akta-heading-48-lg--line-height: 1.08;
+  --text-akta-heading-48-lg--letter-spacing: -0.06em;
+  --text-akta-heading-48-lg--font-weight: 400;
+  /* sub-section headline — h3 */
+  --text-akta-heading-32: 24px;
+  --text-akta-heading-32--line-height: 1.25;
+  --text-akta-heading-32--letter-spacing: -0.05em;
+  --text-akta-heading-32--font-weight: 500;
+  --text-akta-heading-32-sm: 28px;
+  --text-akta-heading-32-sm--line-height: 1.21;
+  --text-akta-heading-32-sm--letter-spacing: -0.05em;
+  --text-akta-heading-32-sm--font-weight: 500;
+  --text-akta-heading-32-lg: 32px;
+  --text-akta-heading-32-lg--line-height: 1.19;
+  --text-akta-heading-32-lg--letter-spacing: -0.05em;
+  --text-akta-heading-32-lg--font-weight: 500;
+  /* body copy */
+  --text-akta-copy-16: 15px;
+  --text-akta-copy-16--line-height: 1.6;
+  --text-akta-copy-16--letter-spacing: -0.01em;
+  --text-akta-copy-16--font-weight: 400;
+  --text-akta-copy-16-sm: 16px;
+  --text-akta-copy-16-sm--line-height: 1.625;
+  --text-akta-copy-16-sm--letter-spacing: -0.01em;
+  --text-akta-copy-16-sm--font-weight: 400;
+  /* dense body, captions */
+  --text-akta-copy-14: 13px;
+  --text-akta-copy-14--line-height: 1.54;
+  --text-akta-copy-14--letter-spacing: -0.01em;
+  --text-akta-copy-14--font-weight: 400;
+  --text-akta-copy-14-sm: 14px;
+  --text-akta-copy-14-sm--line-height: 1.57;
+  --text-akta-copy-14-sm--letter-spacing: -0.01em;
+  --text-akta-copy-14-sm--font-weight: 400;
   --text-akta-heading-24: 20px;
   --text-akta-heading-24--line-height: 1.4;
   --text-akta-heading-24--letter-spacing: -0.04em;

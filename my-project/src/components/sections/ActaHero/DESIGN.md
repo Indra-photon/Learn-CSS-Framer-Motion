@@ -37,7 +37,7 @@ Six things a utility genuinely cannot express. They live in `@layer components`,
 
 ### Shipped vs. documented
 
-This block installs **only the tokens its own markup touches** — 83 theme entries and 29 raw values, not the full system. The rest of the language is specified here and can be added in a line when a later section needs it.
+This block installs **only the tokens its own markup touches** — 123 theme entries and 29 raw values, not the full system. The rest of the language is specified here and can be added in a line when a later section needs it.
 
 | Legend       | Meaning                                                                                                                                                                |
 | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -63,7 +63,7 @@ Colour — one line in `@theme inline`, plus its two values:
 }
 ```
 
-Type — four lines per step, in `@theme inline` only (type carries no light/dark variant):
+Type — four lines per step, in `@theme inline` only (type carries no light/dark variant). `heading-48`, `heading-32`, `copy-16` and `copy-14` ship installed; the shape below is what a _new_ role costs:
 
 ```css
 @theme inline {
@@ -97,13 +97,14 @@ Type — four lines per step, in `@theme inline` only (type carries no light/dar
 
 ### Assumptions
 
-| Assumption                                                | If it isn't true                                                                              |
-| --------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| **Tailwind v4**                                           | The theme namespaces and the markup are v4-only.                                              |
-| Preflight enabled (default)                               | Element margins and link colours return; add `m-0` / `text-*` where it shows.                 |
-| Dark mode toggles a **`.dark`** class                     | The dark ramp never activates. For `[data-theme="dark"]`, duplicate the `.dark { … }` block.  |
-| Geist loaded as `--font-geist-sans` / `--font-geist-mono` | **Optional.** Falls back to `ui-sans-serif` / `ui-monospace`.                                 |
-| `public/paper-image/AIHero01.png` exists                  | **Optional.** The plate is a CSS background layer; a missing file falls through to the hatch. |
+| Assumption                                                     | If it isn't true                                                                                                                                                                                                                                                          |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Tailwind v4**                                                | The theme namespaces and the markup are v4-only.                                                                                                                                                                                                                          |
+| Preflight enabled (default)                                    | Element margins and link colours return; add `m-0` / `text-*` where it shows.                                                                                                                                                                                             |
+| Dark mode toggles a **`.dark`** class                          | The dark ramp never activates. For `[data-theme="dark"]`, duplicate the `.dark { … }` block.                                                                                                                                                                              |
+| Geist loaded as `--font-geist-sans` / `--font-geist-mono`      | **Optional.** Falls back to `ui-sans-serif` / `ui-monospace`.                                                                                                                                                                                                             |
+| `public/paper-image/AIHero01.png` exists                       | **Optional.** The plate is a CSS background layer; a missing file falls through to the hatch.                                                                                                                                                                             |
+| `akta.css` is imported from the **CSS entry**, not a component | Tailwind builds its theme from the entry graph only. An `@theme` in a file imported by a `.tsx` registers nothing, and **every `akta-*` utility silently generates no CSS** — no error, no warning, just unstyled markup. Import it from `globals.css` and keep it there. |
 
 > **Note:** Tailwind scans `.md` and `.json` for class candidates, and this file contains theme-variable names. If you see dead utilities like `.text-akta-display--line-height` in your build, add `@source not "…/*.md";` to your CSS entry.
 
@@ -162,6 +163,7 @@ Blue is scarce on purpose. Six permitted uses, and no others:
 4. Figures that are the point of their sentence — the `5,000+`, the `.pro` in the wordmark
 5. Icons sitting on an `akta-brand-ui` tile
 6. A bare icon or status line labelling _data as resolved_ — the filter glyph, "Positive trend detected", "+ 65 more data points"
+7. The solid square that opens an eyebrow chip or announcement — a `size-2` marker at label scale, a `size-7` square at band scale. One per section, never more.
 
 **Structural notches are `--akta-gray-border-subtle`**, never blue — logo wall cells, band junctions, the secondary button. If blue appears more than a handful of times per viewport, the primary action stops reading as primary.
 
@@ -174,7 +176,7 @@ Blue is scarce on purpose. Six permitted uses, and no others:
 - **Substitute:** `ui-sans-serif, system-ui, sans-serif` (automatic fallback — Geist is optional)
 - **Weights:** 400, 500, 600
 - **Sizes:** 13, 15, 16, 18, 20, 24, 28, 32, 40, 48, 56, 64, 80, 96
-- **Letter spacing:** −0.06em at display, easing to −0.01em at copy. Tracking is expressed in `em`, so one value is correct at every step of a responsive ramp — this is the face's own rule (roughly −6% of size at display sizes) rather than a per-breakpoint guess.
+- **Letter spacing:** −0.06em at the 40px display step and through the heading roles, opening to **−0.03em once display passes 56px**, easing to −0.01em at copy. Tracking is expressed in `em`, so one value is correct at every step of a responsive ramp. The display ramp is the one place the value changes: at 56px and above, −6% closes the counters, so the large steps hold −0.03em rather than inheriting the base.
 - **Weight falls as size rises:** 600 at 20px, 500 at 32px, 400 at 48px and above. Large text needs less weight to carry.
 
 ### Geist Mono — all UI chrome · `--akta-font-mono` · `font-akta-mono`
@@ -192,23 +194,23 @@ Ten roles. Each utility sets **size, line-height, letter-spacing and weight in o
 | Role              | Step | Size | Line Height  | Tracking | Weight | Utility                      |
 | ----------------- | ---- | ---- | ------------ | -------- | ------ | ---------------------------- |
 | **display**       | base | 40px | 44px (1.1)   | −0.06em  | 400    | `text-akta-display`          |
-|                   | sm   | 56px | 56px (1.0)   | −0.06em  | 400    | `sm:text-akta-display-sm`    |
-|                   | md   | 64px | 64px (1.0)   | −0.06em  | 400    | `md:text-akta-display-md`    |
-|                   | lg   | 80px | 80px (1.0)   | −0.06em  | 400    | `lg:text-akta-display-lg`    |
-|                   | xl   | 96px | 96px (1.0)   | −0.07em  | 400    | `xl:text-akta-display-xl`    |
-| **heading-48** ➕ | base | 32px | 36px (1.12)  | −0.06em  | 400    | `text-akta-heading-48`       |
+|                   | sm   | 56px | 56px (1.0)   | −0.03em  | 400    | `sm:text-akta-display-sm`    |
+|                   | md   | 64px | 64px (1.0)   | −0.03em  | 400    | `md:text-akta-display-md`    |
+|                   | lg   | 80px | 80px (1.0)   | −0.03em  | 400    | `lg:text-akta-display-lg`    |
+|                   | xl   | 96px | 96px (1.0)   | −0.03em  | 400    | `xl:text-akta-display-xl`    |
+| **heading-48**    | base | 32px | 36px (1.12)  | −0.06em  | 400    | `text-akta-heading-48`       |
 |                   | sm   | 40px | 44px (1.1)   | −0.06em  | 400    | `sm:text-akta-heading-48-sm` |
 |                   | lg   | 48px | 52px (1.08)  | −0.06em  | 400    | `lg:text-akta-heading-48-lg` |
-| **heading-32** ➕ | base | 24px | 30px (1.25)  | −0.05em  | 500    | `text-akta-heading-32`       |
+| **heading-32**    | base | 24px | 30px (1.25)  | −0.05em  | 500    | `text-akta-heading-32`       |
 |                   | sm   | 28px | 34px (1.21)  | −0.05em  | 500    | `sm:text-akta-heading-32-sm` |
 |                   | lg   | 32px | 38px (1.19)  | −0.05em  | 500    | `lg:text-akta-heading-32-lg` |
 | **heading-24**    | base | 20px | 28px (1.4)   | −0.04em  | 600    | `text-akta-heading-24`       |
 |                   | sm   | 24px | 32px (1.33)  | −0.04em  | 600    | `sm:text-akta-heading-24-sm` |
 | **heading-20**    | base | 18px | 24px (1.33)  | −0.02em  | 600    | `text-akta-heading-20`       |
 |                   | sm   | 20px | 26px (1.3)   | −0.02em  | 600    | `sm:text-akta-heading-20-sm` |
-| **copy-16** ➕    | base | 15px | 24px (1.6)   | −0.01em  | 400    | `text-akta-copy-16`          |
+| **copy-16**       | base | 15px | 24px (1.6)   | −0.01em  | 400    | `text-akta-copy-16`          |
 |                   | sm   | 16px | 26px (1.625) | −0.01em  | 400    | `sm:text-akta-copy-16-sm`    |
-| **copy-14** ➕    | base | 13px | 20px (1.54)  | −0.01em  | 400    | `text-akta-copy-14`          |
+| **copy-14**       | base | 13px | 20px (1.54)  | −0.01em  | 400    | `text-akta-copy-14`          |
 |                   | sm   | 14px | 22px (1.57)  | −0.01em  | 400    | `sm:text-akta-copy-14-sm`    |
 | **label-12-mono** | base | 12px | 16px (1.33)  | 0        | 400    | `text-akta-label-12-mono`    |
 | **nav**           | base | 12px | 20px (1.667) | 0.06em   | 400    | `text-akta-nav`              |
@@ -221,12 +223,12 @@ Ten roles. Each utility sets **size, line-height, letter-spacing and weight in o
 | Role              | Use for                             | Copy this                                                                                                           |
 | ----------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
 | **display**       | Hero `h1`, once per page            | `text-akta-display sm:text-akta-display-sm md:text-akta-display-md lg:text-akta-display-lg xl:text-akta-display-xl` |
-| **heading-48** ➕ | Section `h2`                        | `text-akta-heading-48 sm:text-akta-heading-48-sm lg:text-akta-heading-48-lg`                                        |
-| **heading-32** ➕ | Sub-section `h3`                    | `text-akta-heading-32 sm:text-akta-heading-32-sm lg:text-akta-heading-32-lg`                                        |
+| **heading-48**    | Section `h2`                        | `text-akta-heading-48 sm:text-akta-heading-48-sm lg:text-akta-heading-48-lg`                                        |
+| **heading-32**    | Sub-section `h3`                    | `text-akta-heading-32 sm:text-akta-heading-32-sm lg:text-akta-heading-32-lg`                                        |
 | **heading-24**    | Panel figures, stat values          | `text-akta-heading-24 sm:text-akta-heading-24-sm tabular-nums`                                                      |
 | **heading-20**    | Wordmark, card titles               | `text-akta-heading-20 sm:text-akta-heading-20-sm`                                                                   |
-| **copy-16** ➕    | Body paragraphs                     | `text-akta-copy-16 sm:text-akta-copy-16-sm max-w-[65ch]`                                                            |
-| **copy-14** ➕    | Dense body, captions under figures  | `text-akta-copy-14 sm:text-akta-copy-14-sm`                                                                         |
+| **copy-16**       | Body paragraphs                     | `text-akta-copy-16 sm:text-akta-copy-16-sm max-w-[65ch]`                                                            |
+| **copy-14**       | Dense body, captions under figures  | `text-akta-copy-14 sm:text-akta-copy-14-sm`                                                                         |
 | **label-12-mono** | Every UI label, eyebrows, data keys | `font-akta-mono text-akta-label-12-mono uppercase`                                                                  |
 | **nav**           | Nav links, microcopy, taglines      | `font-akta-mono text-akta-nav uppercase sm:text-akta-nav-sm`                                                        |
 | **cta**           | All buttons                         | `font-akta-mono text-akta-cta uppercase sm:text-akta-cta-sm`                                                        |
@@ -335,7 +337,7 @@ One curve for the whole system. Springs use `{ type: "spring", duration: 0.5, bo
 | 16px | `size-4`   | Inside buttons; inside a tile |
 | 28px | `size-7`   | The tile itself               |
 
-Stroke weight 1.5–2px. Tabler and Hugeicons are the two sets in use.
+Stroke weight 1.5–2px. **Hugeicons is the set — reach for `@hugeicons/react` first.** Tabler appears in the hero for marks Hugeicons has no equivalent of; don't add new Tabler usage without that reason, since two sets means two silhouettes at the same size.
 
 ### Full-bleed bands
 
@@ -520,6 +522,26 @@ Full-bleed, opaque, `z-10`, `shadow-akta-rule-t`. Grid of `2 / sm:3 / lg:6` cell
 
 `<dl>` in label-12-mono, `flex justify-between` rows with `space-y-1.5`. Keys in `--akta-gray-text-low`, values in `--akta-gray-text-high` with `tabular-nums`. Footer line separated by `shadow-akta-rule-t` + `pt-3`.
 
+### Data Bar — ranked list
+
+**Role:** A figure compared against its peers — benchmark tables, share-of-total readouts
+
+A row is a label line plus a bar, never a bar with a number floating beside it. Label in `font-akta-mono text-akta-label-12-mono uppercase text-akta-gray-text-low`, figure right-aligned in the same role with `tabular-nums`, then a full-width track beneath: `h-1.5 bg-akta-gray-ui-hover` carrying a fill sized by inline `width` percentage. Rows `space-y-3`, the two lines inside a row `space-y-1.5`.
+
+**The fill colour is the whole argument.** Peer rows fill `bg-akta-gray-ui-active`; the one row the section is about fills `bg-akta-brand-solid` and carries its figure in `text-akta-brand-solid` with the label lifted to `text-akta-gray-text-high`. Exactly one brand row per list — if two rows are blue, neither reads as the claim.
+
+**Width comes from the data.** Normalise every value against the largest in its own column and set `width` from that ratio, so bar length is the figure rather than an eyeballed guess. Where lower is better, the winning row is legitimately the shortest bar — don't invert it to make the brand row longest. Track and fill are square, like everything else.
+
+### Metric Cell — bento grid
+
+**Role:** A row of parallel claims, each with its own graphic — the section that follows a hero
+
+A grid of `1 / sm:2 / lg:4` cells on the `max-w-akta` rail, wrapped in a full-bleed `shadow-akta-rule-y` band so the top and bottom rules cross the viewport. Every cell carries `shadow-akta-rule-cell` and a flush structural notch (`akta-notch [--akta-notch-arm:0px] [--akta-notch-inset:0px] [--akta-notch-weight:1px] [--akta-notch-color:var(--akta-gray-border-subtle)] lg:[--akta-notch-arm:10px]`), so the grid separates correctly at every column count.
+
+Each cell is three bands split by `shadow-akta-rule-t`, in this order: **graphic**, **title**, **caption**. The graphic sits at the top and is the cell's evidence — a data bar list, not an illustration. The title band pairs a `size-7` icon tile (`bg-akta-brand-ui shadow-akta-ring-brand`, 16px Hugeicon inside) with an `h3` in `text-akta-heading-20 sm:text-akta-heading-20-sm`, plus an optional mono qualifier in parentheses. The caption band carries one sentence in `text-akta-copy-14 sm:text-akta-copy-14-sm text-akta-gray-text-low`.
+
+Push the title band down with `mt-auto` so captions align across cells whose graphics differ in height — the rules must line up row to row or the grid stops reading as a grid.
+
 ### Tagline Row
 
 **Role:** Three-or-four short claims under a headline
@@ -624,6 +646,8 @@ Customer logos are **typeset, not dropped in as SVGs**, using the system's own h
 4. **Section header.** `h2` in `text-akta-heading-48 sm:text-akta-heading-48-sm lg:text-akta-heading-48-lg text-akta-gray-text-high text-balance`, eyebrow above in `font-akta-mono text-akta-label-12-mono uppercase text-akta-brand-text-low`, body below in `text-akta-copy-16 sm:text-akta-copy-16-sm text-akta-gray-text-low max-w-[65ch]`. Wrap in `data-akta-reveal`.
 
 5. **Hatch seam.** Full-bleed `bg-akta-gray-bg-subtle shadow-akta-rule-y`, inner `akta-hatch mx-auto w-full max-w-akta h-6 sm:h-9 [--akta-hatch-color:var(--akta-gray-ui-hover)]`. Closes a section without introducing a divider line.
+
+6. **Benchmark grid.** Section header, then a full-bleed `shadow-akta-rule-y` band holding `mx-auto w-full max-w-akta grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`. Each cell is a **Metric Cell** — graphic / title / caption split by `shadow-akta-rule-t`, with a **Data Bar** list as the graphic and one `bg-akta-brand-solid` row. Wrap header and grid in `data-akta-reveal`. Square corners, no border, no radius.
 
 ---
 
@@ -804,19 +828,19 @@ Everything below is written into your `globals.css` automatically by `shadcn add
   --text-akta-display--font-weight: 400;
   --text-akta-display-sm: 56px;
   --text-akta-display-sm--line-height: 1;
-  --text-akta-display-sm--letter-spacing: -0.06em;
+  --text-akta-display-sm--letter-spacing: -0.03em;
   --text-akta-display-sm--font-weight: 400;
   --text-akta-display-md: 64px;
   --text-akta-display-md--line-height: 1;
-  --text-akta-display-md--letter-spacing: -0.06em;
+  --text-akta-display-md--letter-spacing: -0.03em;
   --text-akta-display-md--font-weight: 400;
   --text-akta-display-lg: 80px;
   --text-akta-display-lg--line-height: 1;
-  --text-akta-display-lg--letter-spacing: -0.06em;
+  --text-akta-display-lg--letter-spacing: -0.03em;
   --text-akta-display-lg--font-weight: 400;
   --text-akta-display-xl: 96px;
   --text-akta-display-xl--line-height: 1;
-  --text-akta-display-xl--letter-spacing: -0.07em;
+  --text-akta-display-xl--letter-spacing: -0.03em;
   --text-akta-display-xl--font-weight: 400;
   --text-akta-heading-24: 20px;
   --text-akta-heading-24--line-height: 1.4;

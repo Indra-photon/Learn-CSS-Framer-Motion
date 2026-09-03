@@ -1,6 +1,11 @@
-import LandingHero from "@/components/sections/HeroSection/ActaHero/LandingHero";
-import PricingCard from "@/components/blocks/PricingCard";
+import LandingHero from "@/components/sections/ActaHero/LandingHero";
+import BentoGrid from "@/components/sections/ActaHero/BentoGrid";
 
 export default function Home() {
-  return <LandingHero />;
+  return (
+    <>
+      <LandingHero />
+      <BentoGrid />
+    </>
+  );
 }

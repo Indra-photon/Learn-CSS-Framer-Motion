@@ -1,4 +1,4 @@
-import LandingHero from "@/components/sections/HeroSection/ActaHero/LandingHero";
+import LandingHero from "@/components/sections/ActaHero/LandingHero";
 
 export default function LandingPage() {
   return <LandingHero />;

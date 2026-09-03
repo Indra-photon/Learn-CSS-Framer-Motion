@@ -171,24 +171,25 @@ function LandingHero() {
                 Private company data and signals API
               </h1>
 
+              {/* Phrases are separated by a rule, never by a `|` glyph — a pipe
+                  brings its own font metrics and sits on a different baseline
+                  from the labels either side, which throws the row's vertical
+                  centring. The rule is a hairline the exact height of the cell
+                  and costs no layout space. Below sm the phrases cannot share a
+                  row, so the column drops the rules with them. */}
               <div
                 data-akta-enter="2"
-                className="mt-5 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 sm:mt-7 sm:gap-x-4"
+                className="mt-5 flex flex-col items-center justify-center sm:mt-7 sm:flex-row sm:flex-wrap"
               >
                 {TAGLINE.map((item, i) => (
-                  <React.Fragment key={item}>
-                    {i > 0 && (
-                      <span
-                        className="text-akta-gray-ui-active"
-                        aria-hidden="true"
-                      >
-                        |
-                      </span>
-                    )}
-                    <span className="font-akta-mono text-akta-nav sm:text-akta-nav-sm text-akta-gray-text-low uppercase">
-                      {item}
-                    </span>
-                  </React.Fragment>
+                  <span
+                    key={item}
+                    className={`font-akta-mono text-akta-nav sm:text-akta-nav-sm text-akta-gray-text-low py-1 uppercase sm:px-3 lg:px-4 ${
+                      i > 0 ? "sm:shadow-akta-rule-l" : ""
+                    }`}
+                  >
+                    {item}
+                  </span>
                 ))}
               </div>
 

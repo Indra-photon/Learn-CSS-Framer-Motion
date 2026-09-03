@@ -5,7 +5,7 @@
  * Tailwind builds its theme only from the entry graph, so an @theme in a
  * component-imported file registers nothing and every akta-* utility silently
  * fails to generate. All the akta rules themselves still live in that file. */
-@import "../components/sections/HeroSection/ActaHero/akta.css";
+@import "../components/sections/ActaHero/akta.css";
 @plugin "@toolwind/corner-shape";
 
 @custom-variant dark (&:is(.dark *));
