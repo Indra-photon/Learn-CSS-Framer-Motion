@@ -1,46 +1,150 @@
-/**
- * Notes — a task list card: header with a completion count and a primary
- * action, a filter row, and date-grouped task rows carrying completion,
- * status, counts and collaborator faces.
- *
- * Every size, weight, radius and colour comes from ./tokens — see that file
- * for the constraints this component is built to hold.
- *
- * Sizing is deliberately *not* declared here: the root is `w-full` and the
- * caller owns the width. Standalone that means a `max-w-*` wrapper; inside
- * MobileFrame it means the screen width. Baking a max-width in would make the
- * card fight the device shell, and Tailwind gives no reliable way for a
- * `className` prop to win that fight afterwards.
- *
- * The card also sizes to its *content* height rather than stretching. It used
- * to be handed `h-full`, which left roughly 280px of empty white below the
- * last row — the largest single shape in the composition was a void. The
- * screen now spends that space on a tab bar, and what is left over shows
- * through as screen background between the two — a deliberate gap rather than
- * an unfinished card.
- *
- * Server component: no hooks, no client directives.
- */
-
-import Image from "next/image";
 import {
   Add01Icon,
   Attachment01Icon,
+  BatteryFullIcon,
+  Calendar01Icon,
   CheckListIcon,
   CheckmarkCircle02Icon,
   CircleIcon,
   Clock01Icon,
   Delete02Icon,
   File01Icon,
+  FullSignalIcon,
+  InboxIcon,
   Message01Icon,
-  Search01Icon,
+  PencilEdit02Icon,
+  Tick02Icon,
+  UserIcon,
+  WifiFullSignalIcon,
 } from "@hugeicons/core-free-icons";
-import { type IconSvgElement } from "@hugeicons/react";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 
-import Icon, { STROKE } from "./icon";
+import { cn } from "@/lib/utils";
 
-import TabBar from "./TabBar";
-import { avatar, t, tone, type Tone } from "./tokens";
+/* ------------------------------------------------------------------ tokens */
+
+const STROKE = 1.5;
+
+/** Every icon on the screen, drawn at one stroke weight. */
+function Icon({
+  icon,
+  size = 20,
+  className,
+}: {
+  icon: IconSvgElement;
+  size?: number;
+  className?: string;
+}) {
+  return (
+    <HugeiconsIcon
+      icon={icon}
+      size={size}
+      strokeWidth={STROKE}
+      className={cn("shrink-0", className)}
+    />
+  );
+}
+
+/**
+ * TWO PAIRS, AND ONLY TWO. 16px rides with medium; 14px rides with normal.
+ * Selection is signalled by surface and colour — the white pill, the ink fill
+ * — never by a third size or a heavier weight, which is how a scale grows a
+ * 15 and a 13 nobody decided on.
+ *
+ * Tracking is Inter's own optical ramp, and it loosens as the size falls:
+ * roughly -0.011em at 16 and neutral at 14. It is stated on the type tokens
+ * rather than on call sites, because tracking that lives at call sites ends up
+ * on two of the seven places the same size is used.
+ *
+ * `*Type` is the size, weight and tracking with no colour, for text that sits
+ * on a coloured surface and brings its own ink — the solid button, the tinted
+ * status pill. The full token is the same three plus the neutral it defaults
+ * to.
+ */
+const t = {
+  nameType: "text-[16px] font-medium tracking-[-0.02em]",
+  name: "text-[16px] font-medium tracking-[-0.02em] text-[oklch(17%_0.018_264)]",
+  bodyType: "text-[14px] font-normal tracking-[-0.01em]",
+  body: "text-[14px] font-normal tracking-[-0.01em] text-[oklch(57%_0.014_264)]",
+
+  /**
+   * The right rail. 80, not 72: the status pill has to hold "Incoming" at the
+   * body size, and the action row has to divide into three boxes and two gaps
+   * — 24 + 4 + 24 + 4 + 24. Both land on 80, which is what lets the pill and
+   * the cluster under it share a left edge, a right edge and a centre line.
+   */
+  rail: "w-[80px]",
+
+  /**
+   * Concentric, and the arithmetic is checkable: inner = outer − the padding
+   * between them. 16 on the card, whose content sits at `p-2` (8), so rows,
+   * the segmented track and the tab pill are 8. The track's own `p-1` (4)
+   * makes its selected pill 4, which is also what the action boxes take as the
+   * smallest surfaces on the screen.
+   */
+  radius: "rounded-[16px]",
+  radiusInner: "rounded-[8px]",
+  radiusTight: "rounded-[4px]",
+
+  card: "bg-[oklch(100%_0_0)]",
+  screen: "bg-[oklch(96%_0.003_264)]",
+
+  well: "bg-[var(--row)] [--row:oklch(97%_0.003_264)]",
+  wellHover: "hover:[--row:oklch(95%_0.004_264)]",
+
+  hairline: "shadow-[0_1px_0_0_oklch(93%_0.004_264)]",
+
+  shadowBorder:
+    "shadow-[0_0_0_1px_rgba(0,0,0,0.06),0_1px_2px_-1px_rgba(0,0,0,0.06),0_2px_4px_0_rgba(0,0,0,0.04)]",
+  shadowBorderHover:
+    "hover:shadow-[0_0_0_1px_rgba(0,0,0,0.08),0_1px_2px_-1px_rgba(0,0,0,0.08),0_2px_4px_0_rgba(0,0,0,0.06)]",
+
+  insetRing: "shadow-[inset_0_0_0_1px_rgba(0,0,0,0.04)]",
+  insetRingHover: "hover:shadow-[inset_0_0_0_1px_rgba(0,0,0,0.06)]",
+
+  /**
+   * Every property that actually changes, and nothing else — never `all`, and
+   * never `transition-colors`, which watches six properties to catch one.
+   * `color` is in the list because the action icons tint on hover: without it
+   * the shadow eased over 150ms while the icon snapped in the same gesture.
+   */
+  move: "transition-[background-color,box-shadow,color,scale] duration-150 ease-out",
+  /** 0.96 exactly. Below 0.95 the press reads as a flinch. */
+  press: "active:scale-[0.96]",
+
+  /**
+   * A 40px-tall hit area on a control that is drawn shorter, as a pseudo
+   * element so nothing in layout moves. Full-width, so two controls sitting
+   * side by side meet at their shared edge and never overlap.
+   */
+  hit: "relative after:absolute after:inset-x-0 after:top-1/2 after:h-10 after:-translate-y-1/2",
+  /**
+   * The same, for the 24px action boxes. 28 wide is the pitch — box plus gap —
+   * so three of them tile the rail exactly and stop where the neighbour's
+   * begins. It is the largest they can be without colliding, which the height
+   * has to make up for.
+   */
+  hitTight:
+    "relative after:absolute after:top-1/2 after:left-1/2 after:h-10 after:w-7 after:-translate-x-1/2 after:-translate-y-1/2",
+
+  markTrack: "stroke-[oklch(72%_0.012_264)]",
+  markFill: "fill-[oklch(17%_0.018_264)]",
+
+  solid: "bg-[oklch(17%_0.018_264)] text-[oklch(99%_0_0)]",
+  solidHover: "hover:bg-[oklch(24%_0.020_264)]",
+} as const;
+
+const tone = {
+  amber:
+    "bg-[oklch(95%_0.075_92)] text-[oklch(52%_0.115_75)] shadow-[inset_0_0_0_1px_oklch(52%_0.115_75/0.16)]",
+  green:
+    "bg-[oklch(95%_0.055_155)] text-[oklch(52%_0.115_155)] shadow-[inset_0_0_0_1px_oklch(52%_0.115_155/0.16)]",
+  red: "bg-[oklch(95%_0.045_25)] text-[oklch(55%_0.150_25)] shadow-[inset_0_0_0_1px_oklch(55%_0.150_25/0.16)]",
+  blue: "bg-[oklch(95%_0.045_240)] text-[oklch(58%_0.130_240)] shadow-[inset_0_0_0_1px_oklch(58%_0.130_240/0.16)]",
+  grey: "bg-[oklch(94%_0.004_264)] text-[oklch(44%_0.012_264)] shadow-[inset_0_0_0_1px_oklch(44%_0.012_264/0.16)]",
+} as const;
+
+type Tone = keyof typeof tone;
 
 /* -------------------------------------------------------------------- data */
 
@@ -49,47 +153,13 @@ type Task = {
   description?: string;
   status: { label: string; tone: Tone };
   due?: string;
-  /** [done, total] subtasks. Omitted on a task with no breakdown. */
   progress?: [number, number];
   comments?: number;
   files?: number;
-  collaborators: string[];
   done?: boolean;
-  /** Renders the row mid-swipe, revealing the action behind it. */
   swiped?: boolean;
 };
 
-/**
- * Faces, keyed by name. A photo says "a person" at 24px in a way an initial
- * never does — the initials were three letters the eye had to decode before it
- * could count heads, which is the only thing this cluster is ever asked.
- *
- * Cropped square at 2x and served at the size they are drawn: an avatar
- * downscaled from a full-resolution photo is the usual reason a mock looks
- * soft next to the type around it. Host is already allow-listed in
- * next.config.ts, so these go through next/image rather than a bare <img>.
- */
-const PHOTO = (id: number) =>
-  `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=96&h=96&fit=crop&dpr=2`;
-
-const PEOPLE: Record<string, string> = {
-  Miguel: PHOTO(2379004),
-  Angel: PHOTO(774909),
-  Hane: PHOTO(415829),
-  John: PHOTO(936119),
-};
-
-const DONE = 3;
-const TOTAL = 8;
-
-/**
- * Grouped by date rather than tagged with it. The old rows carried a time chip
- * ("Today", "Yesterday") next to a status chip ("Ongoing", "Past") — same
- * shape, same size, adjacent — so two unrelated dimensions were sharing one
- * visual channel and the eye could not tell which chip was which. A group
- * header states the date once for the whole cluster and the chip is freed to
- * mean exactly one thing.
- */
 const GROUPS: { label: string; tasks: Task[] }[] = [
   {
     label: "Today",
@@ -102,7 +172,6 @@ const GROUPS: { label: string; tasks: Task[] }[] = [
         progress: [4, 7],
         comments: 3,
         files: 2,
-        collaborators: ["Miguel", "Angel", "Hane"],
       },
       {
         title: "User Interface",
@@ -112,13 +181,8 @@ const GROUPS: { label: string; tasks: Task[] }[] = [
         progress: [1, 5],
         comments: 1,
         files: 4,
-        // Sara has no photo — the tinted-initial fallback, shown on purpose.
-        collaborators: ["Miguel", "John", "Sara"],
       },
       {
-        // Third task, and the only one wearing `amber` — the tone existed in
-        // the palette with nothing spending it, which is how a colour drifts
-        // out of a design system without anyone deciding to drop it.
         title: "Motion Guidelines",
         description: "Easing curves, durations and reduced-motion rules.",
         status: { label: "Review", tone: "amber" },
@@ -126,7 +190,6 @@ const GROUPS: { label: string; tasks: Task[] }[] = [
         progress: [2, 4],
         comments: 5,
         files: 1,
-        collaborators: ["Angel", "Hane"],
       },
     ],
   },
@@ -136,7 +199,6 @@ const GROUPS: { label: string; tasks: Task[] }[] = [
       {
         title: "Typography Styles",
         status: { label: "Done", tone: "grey" },
-        collaborators: ["John", "Hane"],
         done: true,
         swiped: true,
       },
@@ -144,37 +206,102 @@ const GROUPS: { label: string; tasks: Task[] }[] = [
   },
 ];
 
+/* ------------------------------------------------------------------- shell */
+
+const SCREEN_W = 390;
+const SCREEN_H = 844;
+const SCREEN_RADIUS = 44;
+const BEZEL = 12;
+const FRAME_W = SCREEN_W + BEZEL * 2;
+const FRAME_H = SCREEN_H + BEZEL * 2;
+
+/** The iOS status bar — time left, radios right. */
+function StatusBar({ time }: { time: string }) {
+  return (
+    <div className="flex h-[54px] shrink-0 items-center justify-between px-7 pt-1">
+      <span className={cn(t.name, "tabular-nums")}>{time}</span>
+      <div className="flex items-center gap-1.5 text-[oklch(17%_0.018_264)]">
+        <Icon icon={FullSignalIcon} size={16} />
+        <Icon icon={WifiFullSignalIcon} size={16} />
+        <Icon icon={BatteryFullIcon} size={16} />
+      </div>
+    </div>
+  );
+}
+
+/** The device: a bezel whose radius is the screen's plus its own thickness. */
+function MobileFrame({
+  children,
+  time = "9:41",
+  className,
+}: {
+  children: React.ReactNode;
+  time?: string;
+  className?: string;
+}) {
+  return (
+    <div
+      // No drop shadow. The viewBox is the frame's exact bounds, so a shadow
+      // has no room to fall — it lands outside the box and is cut off square
+      // by whatever clips the artwork, which reads as a grey slab under the
+      // phone rather than as depth.
+      // The bezel is the one surface that answers to the page rather than to
+      // the UI on the screen: 18% is near-black against a white page, and on a
+      // dark one it would be the page. 34% is the same hue lifted until the
+      // device reads as an object sitting on the background instead of a hole
+      // cut into it. Everything inside stays a light-theme app on purpose —
+      // this is a picture of a phone, not a themed component.
+      className={cn(
+        "shrink-0 bg-[oklch(18%_0.008_264)] dark:bg-[oklch(34%_0.008_264)]",
+        className,
+      )}
+      style={{
+        padding: BEZEL,
+        borderRadius: SCREEN_RADIUS + BEZEL,
+      }}
+    >
+      <div
+        className={cn(t.screen, "flex flex-col overflow-hidden")}
+        style={{
+          width: SCREEN_W,
+          height: SCREEN_H,
+          borderRadius: SCREEN_RADIUS,
+        }}
+      >
+        <StatusBar time={time} />
+
+        <div className="flex min-h-0 flex-1 px-1.5 pb-2">{children}</div>
+
+        <div className="flex h-[34px] shrink-0 items-center justify-center">
+          <div className="h-[5px] w-[140px] rounded-full bg-[oklch(60%_0.010_264)]" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const SEGMENTS = ["All", "Today", "Done"];
+
+const NAV_TABS = [
+  { label: "Tasks", icon: CheckListIcon },
+  { label: "Calendar", icon: Calendar01Icon },
+  { label: "Inbox", icon: InboxIcon },
+  { label: "Profile", icon: UserIcon },
+];
+
 /* --------------------------------------------------------------- fragments */
 
+/** The status pill — cap-trimmed so the label centres on its ink, not its line box. */
 function Tag({ label, tone: k }: { label: string; tone: Tone }) {
   return (
     <span
-      className={`${tone[k]} ${t.rail} flex h-5 items-center justify-center overflow-hidden rounded-full px-2 pb-[1px] text-[13px] leading-4 font-normal`}
+      className={cn(
+        tone[k],
+        t.rail,
+        t.bodyType,
+        "flex h-5 items-center justify-center overflow-hidden rounded-full px-2 pb-[1px] leading-4",
+      )}
     >
-      {/* `text-box: trim-both cap alphabetic` — the fix for a label that will
-          not sit in the middle no matter what padding it is given.
-       *
-       * Padding centres the *line box*, and the line box is not what the eye
-       * judges. Figtree reserves 0.95em above the baseline and 0.25em below
-       * (next/font states both on its fallback face), so at 13px the box
-       * carries 12.35px of ascent over a cap that is only ~9.1px tall. The
-       * leftover 3px is empty and sits entirely on top of the letters, which
-       * is why every padding value is either a pixel high or a pixel low —
-       * there is no value that centres the ink, because the ink is not
-       * centred in the thing being moved.
-       *
-       * `trim-both` throws that reserved space away and shrinks the box to
-       * exactly cap-height-to-baseline, so `items-center` then centres the
-       * letters themselves. Same rule as Figma's "Vertical trim: Cap height".
-       *
-       * `justify-center` is doing the horizontal half now that `text-center`
-       * is gone, and `overflow-hidden` sits on this outer box rather than the
-       * inner one on purpose: on the inner box it would clip at the trimmed
-       * edge and take the descender off the "g".
-       *
-       * Chrome 133+ and Safari 18.4+. Where it is not supported the flex
-       * centring still runs and the label lands where `pt-0.5` put it, which
-       * is the better of the two guesses. */}
       <span className="whitespace-nowrap [text-box:trim-both_cap_alphabetic]">
         {label}
       </span>
@@ -182,7 +309,7 @@ function Tag({ label, tone: k }: { label: string; tone: Tone }) {
   );
 }
 
-/** An icon and a number — attachments, comments. Body-sized like everything. */
+/** An icon and a number — attachments, comments, subtasks, time. */
 function Count({
   icon,
   value,
@@ -191,7 +318,7 @@ function Count({
   value: number | string;
 }) {
   return (
-    <span className={`${t.body} flex items-center gap-1 tabular-nums`}>
+    <span className={cn(t.body, "flex items-center gap-1 tabular-nums")}>
       <Icon icon={icon} size={14} />
       {value}
     </span>
@@ -199,85 +326,71 @@ function Count({
 }
 
 /**
- * Overlapping initials. `-space-x-2` does the stacking; the ring is painted in
- * the row's own background via `--row`, so each circle cuts a clean bite out
- * of the one behind it — a real border would read as a drawn stroke instead,
- * and a hardcoded colour would stop matching the moment the row hovers.
+ * The row's three actions, each on its own surface. Every box is the card's
+ * white raised on the row's recessed fill — the same figure the segmented
+ * control's selected pill draws, which is what says "control" here rather than
+ * "content" — and the tightest radius, because these are the smallest surfaces
+ * on the screen.
+ *
+ * Colour only on hover, and only on the one being pointed at: ink for edit,
+ * the green already carrying the done mark, the red already in `tone.red`.
+ * Three coloured boxes at rest would outweigh the status pill above them.
  */
-function Collaborators({ names }: { names: string[] }) {
+const ACTIONS = [
+  {
+    label: "Edit",
+    icon: PencilEdit02Icon,
+    hover: "hover:text-[oklch(17%_0.018_264)]",
+  },
+  {
+    label: "Complete",
+    icon: Tick02Icon,
+    hover: "hover:text-[oklch(52%_0.115_155)]",
+  },
+  {
+    label: "Delete",
+    icon: Delete02Icon,
+    hover: "hover:text-[oklch(55%_0.150_25)]",
+  },
+];
+
+function Actions() {
   return (
-    <div className="flex -space-x-2">
-      {names.map((name, i) => {
-        const photo = PEOPLE[name];
-        return (
-          <span
-            key={name}
-            className={`${photo ? "" : avatar[i % avatar.length]} ${t.ringRow} flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-full text-[13px] font-normal ring-2`}
-          >
-            {/* The tinted initial is the fallback, not the default — a real
-                roster always has someone who has not uploaded a photo, and a
-                design that only draws the happy path hides that from you. */}
-            {photo ? (
-              <Image
-                src={photo}
-                alt={name}
-                width={48}
-                height={48}
-                className="size-full object-cover outline-1 -outline-offset-1 outline-black/10"
-              />
-            ) : (
-              name[0]
-            )}
-          </span>
-        );
-      })}
+    // 24 + 4 + 24 + 4 + 24 = 80, the rail exactly.
+    <div className={cn(t.rail, "flex items-center gap-1")}>
+      {ACTIONS.map(({ label, icon, hover }) => (
+        <button
+          key={label}
+          type="button"
+          aria-label={label}
+          className={cn(
+            t.radiusTight,
+            t.card,
+            t.shadowBorder,
+            t.shadowBorderHover,
+            t.move,
+            t.press,
+            t.hitTight,
+            hover,
+            "flex size-6 items-center justify-center text-[oklch(57%_0.014_264)]",
+          )}
+        >
+          <Icon icon={icon} size={16} />
+        </button>
+      ))}
     </div>
   );
 }
 
-/**
- * Every leading mark occupies this one slot, so the marks, the header icon and
- * the group labels all sit in the same 24px column.
- *
- * No vertical nudge. The mark used to carry a `-mt-0.5` guessed against an
- * assumed 20px line box, which is why the title sat a pixel or two low — the
- * font's actual line box is whatever the browser resolves `normal` to, not a
- * number this file gets to pick. The title row is now declared `h-6` and
- * centres its own text, so the mark and the heading are two 24px boxes
- * starting at the same y and the alignment is exact rather than tuned.
- */
 const MARK = "size-6 shrink-0";
 
-/**
- * The leading mark: a ring that fills as a wedge, in proportion to subtasks
- * done. It replaces an empty circle that said the same nothing on every row.
- *
- * A wedge and not an arc. At 20px a stroked arc has to be ~2px wide to be
- * visible at all, which puts it optically level with the ring it sits inside
- * and the two read as one thick smudge; a filled sector separated from the
- * ring by a gap reads its own fraction at a glance. Geometry starts at twelve
- * o'clock and sweeps clockwise, which is the only direction a viewer will
- * read a clock-shaped thing.
- *
- * The exact count still lives in the meta row. These are two different jobs:
- * the wedge is glanceable and approximate, the count is precise and requires
- * stopping to read. Neither one makes the other redundant.
- *
- * Drawn on Hugeicons' grid, not on one of its own: a 24 viewBox, `r=10`, and
- * the same `STROKE` every icon on the screen uses. Those are `CircleIcon`'s
- * exact numbers, so the empty ring, the green check and this one are the same
- * circle — and its outer ink starts at 1.25 units like theirs, which is what
- * keeps it on the 16px column. Anything sharing a column with an icon set has
- * to be drawn to that set's metrics, not to round numbers of its own. This is
- * the second time these have moved; they were Tabler's `r=9` / 2-unit stroke
- * before the set was swapped.
- */
+/** The leading mark: a ring filled as a wedge, in proportion to subtasks done. */
 function ProgressMark({ done, total }: { done: number; total: number }) {
   const fraction = Math.min(Math.max(done / total, 0), 1);
 
-  const C = 12; // centre, on Hugeicons' 24 grid
-  const R = 10; // ring radius — Hugeicons' own CircleIcon
-  const r = 7; // wedge radius, leaving a 2.25 gap inside the ring
+  const C = 12;
+  const R = 10;
+  const r = 7;
 
   const angle = fraction * 2 * Math.PI;
   const x = C + r * Math.sin(angle);
@@ -297,7 +410,6 @@ function ProgressMark({ done, total }: { done: number; total: number }) {
         <circle cx={C} cy={C} r={r} className={t.markFill} />
       ) : (
         fraction > 0 && (
-          // Sector: centre → twelve o'clock → arc → close.
           <path
             d={`M ${C} ${C} L ${C} ${C - r} A ${r} ${r} 0 ${fraction > 0.5 ? 1 : 0} 1 ${x} ${y} Z`}
             className={t.markFill}
@@ -308,89 +420,75 @@ function ProgressMark({ done, total }: { done: number; total: number }) {
   );
 }
 
+/** One task: mark, title and status, description, then counts left and actions right. */
 function TaskRow({ task }: { task: Task }) {
   return (
-    // The swiped row shrinks to make room for its action rather than sliding
-    // out from under a clip. Translating it was right in principle — that is
-    // what the gesture does — but at rest it just ate the first letter of the
-    // title, which reads as a broken layout rather than as a swipe. The
-    // settled width is the state worth drawing.
-    // The action ends where the wells end. It was briefly inset 12px so its
-    // centre would land on the same column the badges and face clusters use,
-    // but that traded a shared centre line for a broken right edge — and the
-    // right edge is the one the eye actually checks, because every row above
-    // draws it. A surface in a list of surfaces matches their bounds first.
     <div className="flex items-stretch gap-2">
-      {/* `pt-[15px] pb-4` — 15 and 16, not 16 and 16.
-          The row's topmost ink is the status mark and its bottommost is the
-          avatar cluster, and those two do not sit in their boxes the same way.
-          CircleIcon is r=10 on a 24 grid, so with a 1.5 stroke its outer edge
-          stops 1.25 short of its own box; an avatar is a filled 24px circle
-          that fills its box exactly. Equal padding therefore renders 17.25
-          above the visible mark and 16 below the visible faces. Taking that
-          1.25 off the top is what makes the two gaps match on screen rather
-          than in the box model. */}
-      <button
-        type="button"
-        className={`${t.radiusInner} ${t.well} ${t.wellHover} ${t.insetRing} ${t.insetRingHover} ${t.shadowMove} group flex min-w-0 flex-1 items-start gap-2 px-2 pt-[15px] pb-4 text-left`}
+      {/* A div, not a button. The row was one pressable surface until it grew
+          three of its own, and a button inside a button is invalid markup — so
+          the actions are the interactive things now and the row is what holds
+          them. */}
+      <div
+        // `pt-[15px] pb-4` — 15 and 16, not 16 and 16. The row's topmost ink is
+        // the status mark and its bottommost is an action box, and the two do
+        // not sit in their boxes the same way: the mark is a circle on a 24
+        // grid whose outer edge stops 1.25 short of its own box, while an
+        // action box is filled to its edge. Equal padding therefore renders
+        // 17.25 above the visible mark and 16 below the visible boxes.
+        className={cn(
+          t.radiusInner,
+          t.well,
+          t.wellHover,
+          t.insetRing,
+          t.insetRingHover,
+          t.move,
+          "flex min-w-0 flex-1 items-start gap-2 px-2 pt-[15px] pb-4 text-left",
+        )}
       >
         {task.done ? (
           <Icon
             icon={CheckmarkCircle02Icon}
             size={24}
-            className={`${MARK} text-[oklch(52%_0.115_155)]`}
+            className={cn(MARK, "text-[oklch(52%_0.115_155)]")}
           />
         ) : task.progress ? (
           <ProgressMark done={task.progress[0]} total={task.progress[1]} />
         ) : (
-          // No subtasks to measure — the empty ring is the honest mark.
           <Icon
             icon={CircleIcon}
             size={24}
-            className={`${MARK} text-[oklch(75%_0.010_264)]`}
+            className={cn(MARK, "text-[oklch(72%_0.012_264)]")}
           />
         )}
 
         <div className="flex min-w-0 flex-1 flex-col">
-          {/* `h-6` matches the mark exactly, so both are 24px boxes starting at
-              the same y and the heading centres itself inside one. */}
           <div className="flex h-6 items-center gap-2">
             <span
-              className={`${t.name} truncate ${
-                task.done ? "text-[oklch(62%_0.012_264)] line-through" : ""
-              }`}
+              className={cn(
+                t.name,
+                "truncate",
+                task.done && "text-[oklch(57%_0.014_264)] line-through",
+              )}
             >
               {task.title}
             </span>
-            {/* Status closes the row on the right, where the due time used to
-                sit. It is the one field worth reading before deciding whether
-                to read the row at all, so it earns the second alignment edge;
-                the time is a detail and moved down with the other details. */}
             <span className="ml-auto shrink-0">
               <Tag {...task.status} />
             </span>
           </div>
 
-          {/* 2px. The title's own line box already leaves ~3px under the text
-              inside `h-6`, so a 6px gap on top of that read as a gulf between a
-              heading and its own subtext. */}
           {task.description && (
             <p
-              className={`${t.body} mt-0.5 line-clamp-2 max-w-4/5 text-pretty`}
+              className={cn(
+                t.body,
+                "mt-0.5 line-clamp-2 max-w-4/5 text-pretty",
+              )}
             >
               {task.description}
             </p>
           )}
 
-          {/* Details left, faces right. The collaborator sentence that used to
-              live here repeated the same three names in every row and was the
-              only line that wrapped — the avatars already said it. */}
           <div className="mt-5 flex items-center gap-2">
-            {/* Subtask completion, as a third count rather than a fourth line.
-                It had a full-width track under the row, which drew a heavy
-                horizontal rule across every task and read as structure the
-                list does not have. The number was always the part being
-                read; the bar was the part being ignored. */}
             {task.progress && (
               <Count
                 icon={CheckListIcon}
@@ -406,50 +504,59 @@ function TaskRow({ task }: { task: Task }) {
             )}
             {task.due && <Count icon={Clock01Icon} value={task.due} />}
 
-            {/* Centred in the rail, not flushed to its right edge — the
-                cluster is a different width in every row, and only its centre
-                can line up with the badge sitting above it. */}
-            <div className={`${t.rail} ml-auto flex justify-center`}>
-              <Collaborators names={task.collaborators} />
+            <div className="ml-auto shrink-0">
+              <Actions />
             </div>
           </div>
         </div>
-      </button>
+      </div>
 
       {task.swiped && (
         <div
-          className={`${t.radiusInner} ${tone.red} ${t.rail} flex shrink-0 flex-col items-center justify-center gap-1`}
+          className={cn(
+            t.radiusInner,
+            tone.red,
+            t.rail,
+            t.bodyType,
+            "flex shrink-0 flex-col items-center justify-center gap-1",
+          )}
         >
           <Icon icon={Delete02Icon} size={18} />
-          <span className="text-[13px] font-normal">Delete</span>
+          <span>Delete</span>
         </div>
       )}
     </div>
   );
 }
 
-/**
- * Segmented control. The inner radius is the outer radius minus the container
- * padding — the same nested-corner arithmetic MobileFrame does for the bezel,
- * and the reason the selected pill sits concentric inside the track instead of
- * looking pasted on.
- */
-const TABS = ["All", "Today", "Done"];
-
+/** Segmented filter — the pill's radius is the track's minus its padding. */
 function Segmented() {
   return (
     <div
-      className={`${t.radiusInner} ${t.well} ${t.insetRing} flex items-center p-1`}
+      className={cn(
+        t.radiusInner,
+        t.well,
+        t.insetRing,
+        "flex items-center p-1",
+      )}
     >
-      {TABS.map((tab, i) => (
+      {SEGMENTS.map((tab, i) => (
         <button
           key={tab}
           type="button"
-          className={`${t.radiusTight} px-3 py-1.5 text-[13px] font-normal transition-colors ${
+          className={cn(
+            t.radiusTight,
+            t.bodyType,
+            t.move,
+            t.press,
+            t.hit,
+            "px-3 py-1.5",
             i === 0
-              ? `${t.card} ${t.shadowBorder} font-semibold text-[oklch(23%_0.015_264)]`
-              : "text-[oklch(62%_0.012_264)]"
-          }`}
+              ? cn(t.card, t.shadowBorder, "text-[oklch(17%_0.018_264)]")
+              : // The unselected segments now answer to the pointer. They
+                // carried a transition for a state they did not have.
+                "text-[oklch(57%_0.014_264)] hover:text-[oklch(17%_0.018_264)]",
+          )}
         >
           {tab}
         </button>
@@ -458,60 +565,87 @@ function Segmented() {
   );
 }
 
+/**
+ * The card's footer: four named tabs, the selected one filled with the ink
+ * value. Selection is the fill and the white label, not a size or a weight —
+ * every tab is set at the body pair.
+ *
+ * Padding follows the optical rule, `icon-side = text-side − 2`: an icon does
+ * not fill its box the way a letter fills its line, so equal padding reads as
+ * a label pushed off-centre. That is `pl-2.5 pr-3` on the filled tab and
+ * `pl-1 pr-1.5` on the bare ones, which is also what buys the row enough width
+ * to seat four labels inside a 390 screen.
+ */
+function TabBar() {
+  return (
+    <nav className="flex shrink-0 items-center justify-between gap-0.5 px-2 py-2 shadow-[0_-1px_0_0_oklch(93%_0.004_264)]">
+      {NAV_TABS.map(({ label, icon }, i) => {
+        const selected = i === 0;
+        return (
+          <button
+            key={label}
+            type="button"
+            className={cn(
+              t.radiusInner,
+              t.bodyType,
+              t.move,
+              t.press,
+              t.hit,
+              "flex items-center justify-center gap-1.5 py-2",
+              selected
+                ? cn(t.solid, "pr-3 pl-2.5")
+                : "pr-1.5 pl-1 text-[oklch(57%_0.014_264)] hover:bg-[oklch(97%_0.003_264)]",
+            )}
+          >
+            <Icon icon={icon} size={20} />
+            {label}
+          </button>
+        );
+      })}
+    </nav>
+  );
+}
+
 /* --------------------------------------------------------------- component */
 
-export default function Notes({ className = "" }: { className?: string }) {
+/** The card: header, filter row, date-grouped task rows, tab bar. */
+function Notes({ className }: { className?: string }) {
   return (
-    // Deliberately a <div>, not a <section>. globals.css carries a bare
-    // `section { min-height: 100vh; display: grid; place-items: center }`
-    // rule from the CornerShape02 demo, which would force this card to
-    // viewport height and centre every child inside it — that rule is global
-    // and unscoped, so any <section> here silently inherits it.
     <div
-      className={`${t.radius} ${t.card} ${t.shadowBorder} flex w-full flex-col overflow-hidden ${className}`}
+      className={cn(
+        t.radius,
+        t.card,
+        t.shadowBorder,
+        "flex w-full flex-col overflow-hidden",
+        className,
+      )}
     >
-      {/* The one divider in the component: chrome above, content below. */}
       <header
-        // Asymmetric on purpose: `pl-4` keeps the logo on the 16 column the
-        // status marks use, while `pr-2` lets the Add button close on 8 — the
-        // wells' own outer edge — rather than stopping short at their content
-        // edge. The left of the header answers to the list's contents, the
-        // right of it answers to the list's bounds.
-        className={`${t.hairline} flex shrink-0 items-center justify-between gap-3 py-3 pr-2 pl-4`}
+        className={cn(
+          t.hairline,
+          "flex shrink-0 items-center justify-between gap-3 py-3 pr-2 pl-4",
+        )}
       >
-        {/* `gap-2`, matching the row's. The wordmark and the row titles are
-            both "the 24px mark, then a gap", so the gap has to be the same
-            number in both places or they stop sharing a column. */}
-        <div className={`${t.name} flex items-center gap-2`}>
-          {/* Optical, and transform-only so nothing else moves. Both glyphs
-              sit in a 24px box, but Tabler draws the document 5 units in from
-              its edge and the circle only 3 — box-aligned, the logo's ink
-              starts 2px right of every mark below it. `-translate-x-0.5`
-              spends exactly that 2px, and because it is a transform the
-              wordmark stays where it is. */}
-          <Icon
-            icon={File01Icon}
-            size={24}
-            className="shrink-0 -translate-x-0.5"
-          />
-          {/* The wordmark and its count stay on the tighter 8px gap — the 12
-              belongs to the icon column, not to the words. */}
-          <span className="flex items-center gap-2">Notes</span>
+        <div className={cn(t.name, "flex items-center gap-1.5")}>
+          <Icon icon={File01Icon} size={24} className="shrink-0" />
+          <span className="flex items-center">Notes</span>
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
-          {/* Filled, not outlined. It used to wear the same border, radius,
-              padding and hover as the three filter chips beside it — the one
-              thing worth pressing was dressed as passive chrome. */}
+          {/* `pl-3 pr-3.5` — the same optical rule the tabs follow, with the
+              icon on the left this time. */}
           <button
             type="button"
-            // `icon-side padding = text-side padding - 2px`. An icon does not
-            // fill its box the way a letter fills its line, so equal padding
-            // reads as a button pushed left: the plus sits in 18px of slack
-            // while "note" ends flush on its own stem. The 2px comes off the
-            // icon side, not onto the text side, so the button keeps its width
-            // and its right edge stays on the wells' outer edge.
-            className={`${t.radiusInner} ${t.solid} ${t.solidHover} flex items-center gap-1.5 py-2 pr-3.5 pl-3 text-[15px] font-semibold transition-colors`}
+            className={cn(
+              t.radiusInner,
+              t.solid,
+              t.solidHover,
+              t.nameType,
+              t.move,
+              t.press,
+              t.hit,
+              "flex items-center gap-1.5 py-2 pr-3.5 pl-3",
+            )}
           >
             <Icon icon={Add01Icon} size={18} />
             Add note
@@ -519,25 +653,6 @@ export default function Notes({ className = "" }: { className?: string }) {
         </div>
       </header>
 
-      {/* ONE CONTENT COLUMN AT 16px.
-          Nothing here sets 16 directly. Every left edge is a *sum* of the
-          paddings above it, which is why changing any single one silently
-          drags one element off the column while the others stay put:
-
-            row marks   body `p-2` (8)   + row `px-2` (8)   = 16
-            header      `px-4` (16)                          = 16
-            footer      nav `px-1` (4)   + tab `px-3` (12)  = 16
-
-          The right edge closes the same way: the header's `px-4` and the
-          footer's 4 + 12 both stop 16 short of the card, which is where the
-          wells' own content stops too.
-
-          Two glyph nudges sit on top of that, because a box on the column is
-          not the same as ink on the column. Tabler insets the document 4px
-          from its box and the circle only 2, so the logo carries
-          `-translate-x-0.5` to give back the difference. The nav's list icon
-          is drawn at 20px, not 24, which lands it within a fraction of the
-          circle's 2px — close enough to leave alone. */}
       <div className="flex min-h-0 flex-1 flex-col gap-3 p-2">
         <div className="flex items-end justify-end gap-2">
           <Segmented />
@@ -554,5 +669,40 @@ export default function Notes({ className = "" }: { className?: string }) {
 
       <TabBar />
     </div>
+  );
+}
+
+/**
+ * The design: the card filling a phone screen, carrying its own footer.
+ *
+ * The phone is laid out in fixed pixels — the composition is drawn against a
+ * 390pt screen and does not reflow — so the whole device is scaled to the
+ * caller's width by a viewBox rather than by rewriting its measurements. In a
+ * container narrower than the frame it shrinks, and it never exceeds its
+ * natural size. The viewBox is the device's exact bounds, so nothing may paint
+ * outside it — see the frame's missing shadow.
+ */
+export default function NotesCard({
+  time,
+  className,
+}: {
+  time?: string;
+  className?: string;
+}) {
+  return (
+    <svg
+      viewBox={`0 0 ${FRAME_W} ${FRAME_H}`}
+      width={FRAME_W}
+      height={FRAME_H}
+      // 414px is FRAME_W spelled out: Tailwind scans source text, so a class
+      // built from the constant would never be generated.
+      className={cn("h-auto w-full max-w-[414px]", className)}
+    >
+      <foreignObject width={FRAME_W} height={FRAME_H}>
+        <MobileFrame time={time}>
+          <Notes className="min-h-0 flex-1" />
+        </MobileFrame>
+      </foreignObject>
+    </svg>
   );
 }
