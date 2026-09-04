@@ -64,7 +64,7 @@ const FOCUS =
    call sites are different sizes, and a size baked into the shared const
    means two conflicting `px-*` on one element, resolved by stylesheet order
    rather than by intent. */
-const PILL_SOLID = "pill-brand inline-flex items-center rounded-[12px]";
+const PILL_SOLID = "pill-brand inline-flex items-center rounded-[9px]";
 
 export default function WellnessCompany() {
   return (
@@ -72,36 +72,44 @@ export default function WellnessCompany() {
       <header
         className={`relative z-10 w-full py-[clamp(1rem,2.2vh,1.5rem)] ${GUTTER}`}
       >
-        {/* Three tracks. The wordmark leads, the nav takes the centre track —
-            centred on the measure, not on whatever the nav happens to be wide —
-            and the action closes the row. The two outer tracks are both
-            `flex-1` so the centre stays centred regardless of their contents. */}
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-6">
+        {/* Two groups. The wordmark leads; the nav and the action travel
+            together on the trailing edge, one 32px gap between them, so the
+            header reads as identity on one side and business on the other.
+            Everything in it is `type-button-16` — the same step the hero
+            buttons use, which retires the 14px size from the block. */}
+        {/* Baseline, not centre. The wordmark is 30px serif and the nav is
+            16px sans; centring their boxes aligns the middles and leaves the
+            baselines ~5px apart, which is the misalignment you see. Aligning
+            on the baseline puts every word in the header on one line, and the
+            pill — whose baseline is its own label's — ends up with equal air
+            above and below that line. Only from lg: below it the row is the
+            wordmark and an icon button, which has no baseline to share. */}
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-6 lg:items-baseline">
           <a
             href="#top"
-            className={`type-wordmark flex-1 shrink-0 rounded-full text-[var(--ink)] ${FOCUS}`}
+            className={`type-wordmark inline-flex shrink-0 items-center rounded-full text-[var(--ink)] ${FOCUS}`}
           >
             The Wellness Company
           </a>
 
-          <nav className="hidden min-w-0 flex-1 flex-wrap items-center justify-center gap-x-8 gap-y-2 lg:flex">
-            {NAV.map((item) => (
-              <a
-                key={item}
-                href="#"
-                className={`type-label-14 rounded-full font-medium text-[var(--ink)] transition-colors hover:text-[var(--ink-muted)] ${FOCUS}`}
-              >
-                {item}
-              </a>
-            ))}
-          </nav>
+          <div className="flex flex-1 items-center justify-end gap-8 lg:items-baseline">
+            <nav className="hidden min-w-0 items-baseline gap-8 lg:flex">
+              {NAV.map((item) => (
+                <a
+                  key={item}
+                  href="#"
+                  className={`type-button-16 rounded-full text-[var(--ink)] transition-colors hover:text-[var(--ink-muted)] ${FOCUS}`}
+                >
+                  {item}
+                </a>
+              ))}
+            </nav>
 
-          <div className="flex flex-1 items-center justify-end">
             <a
-              href="#contact"
-              className={`type-button-14 hidden px-5 py-3 lg:inline-flex ${PILL_SOLID} ${FOCUS}`}
+              href="sms:+16284687855"
+              className={`type-button-16 hidden px-5 py-3 lg:inline-flex ${PILL_SOLID} ${FOCUS}`}
             >
-              Book a free call
+              Text us
             </a>
 
             <button
@@ -112,7 +120,7 @@ export default function WellnessCompany() {
               <HugeiconsIcon
                 icon={Menu01Icon}
                 size={22}
-                strokeWidth={1.5}
+                strokeWidth={1.8}
                 aria-hidden="true"
               />
             </button>
@@ -123,35 +131,39 @@ export default function WellnessCompany() {
       <div
         className={`relative z-10 flex w-full items-start pt-[clamp(0.5rem,2vh,2rem)] pb-[clamp(1rem,2.5vh,2rem)] ${GUTTER}`}
       >
-        <div className="mx-auto w-full max-w-7xl pt-12 lg:pt-20">
-          <div className="w-full">
-            <h1 className="type-hero text-[var(--ink)]">
+        <div className="mx-auto w-full max-w-7xl pt-10 lg:pt-16">
+          {/* The copy is a column, not a band: uncapped, a second line of deck
+              would run 100+ characters across the sheet and under the photo. */}
+          <div className="w-full max-w-[560px]">
+            <h1 className="enter type-hero text-[var(--ink)] [--rise:12px]">
               Live better, feel sharper.
               {/* <span className="text-[var(--ink-faint)]">feel sharper.</span> */}
             </h1>
 
-            <p className="type-copy-18 mt-5 max-w-full text-pretty text-[var(--ink-muted)]">
-              We build tools that help you understand and improve your health.
+            <p className="enter type-copy-18 mt-5 max-w-full text-pretty text-[var(--ink-muted)] [--enter-delay:120ms] [--rise:10px]">
+              Three tools that read your cold, your sunlight and your movement,
+              and turn them into patterns you can act on.
             </p>
 
-            <div className="mt-7 flex flex-wrap items-center gap-3">
+            <div className="enter mt-7 flex flex-wrap items-center gap-3 [--enter-delay:240ms] [--rise:8px]">
               {/* The real action. It opens the visitor's Messages app, and the
                 label has to say so rather than borrow the nav's wording. */}
               <a
                 href="sms:+16284687855"
-                className={`type-button-16 gap-3 py-2 ps-6 pe-2 ${PILL_SOLID} ${FOCUS}`}
+                className={`type-button-16 gap-3 px-3 py-2 ${PILL_SOLID} ${FOCUS}`}
               >
                 Text us to begin
                 {/* The badge is the ink box the gold face is missing — it says
                     the link opens Messages, and it mirrors the secondary
-                    button's badge so the pair reads as one family. Concentric:
-                    a 12px outer corner with 8px of padding leaves 4, rounded
-                    up to 6 so it does not read as a square. */}
+                    button's badge so the pair reads as one family. Concentric,
+                    exactly: outer 12px minus 8px of padding is an inner 4px.
+                    It was 6px, which is the rule broken by two pixels — enough
+                    that the corners visibly disagree at this size. */}
                 <span className="pill-badge flex size-8 items-center justify-center rounded-[6px]">
                   <HugeiconsIcon
                     icon={Message01Icon}
                     size={16}
-                    strokeWidth={2}
+                    strokeWidth={1.8}
                     aria-hidden="true"
                   />
                 </span>
@@ -164,15 +176,16 @@ export default function WellnessCompany() {
               </button> */}
               <a
                 href="#how"
-                className={`chip-brand type-button-16 group inline-flex items-center gap-3 rounded-[12px] py-2 ps-6 pe-2 text-[var(--ink)] ${FOCUS}`}
+                className={`chip-brand type-button-16 group inline-flex items-center gap-3 rounded-[9px] px-3 py-2 text-[var(--ink)] ${FOCUS}`}
               >
                 How we work
-                <span className="pill-badge flex size-8 items-center justify-center rounded-[6px]">
+                <span className="chip-badge flex size-8 items-center justify-center rounded-[6px]">
                   <HugeiconsIcon
                     icon={ArrowRight01Icon}
                     size={16}
-                    strokeWidth={2}
+                    strokeWidth={1.8}
                     aria-hidden="true"
+                    className="badge-icon"
                   />
                 </span>
               </a>
@@ -201,29 +214,38 @@ export default function WellnessCompany() {
         <img
           src="/Images/wellness-bloom.png"
           alt=""
-          className="bloom h-full w-full object-cover object-[62%_45%] lg:object-[52%_50%]"
+          className="bloom enter-photo h-full w-full object-cover object-[62%_45%] lg:object-[52%_50%]"
         />
       </div>
 
-      {/* The product table. Four tracks on desktop — index, name, category,
+      {/* The product table. Three tracks on desktop — name, category,
           description — and a hairline above each row, so the rules do the
-          grouping and nothing needs a box. `mt-auto` pushes it to the foot of
-          the sheet, which is what opens the gap under the headline. */}
+          grouping and nothing needs a box. The 01/02/03 rail is gone: at 12px
+          in --ink-faint it was too quiet to be read as an index and too
+          present to be nothing, so it was only texture. `mt-auto` pushes the
+          table to the foot of the sheet. */}
       <div
-        className={`relative z-10 mt-auto w-full pt-[clamp(2.5rem,7vh,5rem)] pb-[max(clamp(1.5rem,4vh,3.5rem),env(safe-area-inset-bottom))] ${GUTTER}`}
+        className={`relative z-10 mt-auto w-full pt-[clamp(2rem,5vh,3.5rem)] pb-[max(clamp(1.5rem,4vh,3.5rem),env(safe-area-inset-bottom))] ${GUTTER}`}
       >
-        <div className="mx-auto w-full max-w-7xl">
-          {PRODUCTS.map((product, i) => (
+        {/* A veil of paper across the band. The photograph's own mask fades it
+            by the foot of the sheet, but the table sits IN that fade, so the
+            description column was reading against petals. This paints the
+            ground back over the picture exactly where the rules begin —
+            transparent at the top edge, full paper by the first row — so the
+            image blends out instead of being cropped by text. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 -z-[1] h-full bg-gradient-to-b from-transparent via-[var(--paper)] via-35% to-[var(--paper)]"
+        />
+
+        <div className="enter-block mx-auto w-full max-w-7xl">
+          {PRODUCTS.map((product) => (
             <a
               key={product.name}
               href="#products"
-              className={`product-row group grid grid-cols-1 items-start gap-x-8 gap-y-2 border-t border-[color-mix(in_srgb,var(--gray-border-subtle)_45%,transparent)] py-[clamp(0.85rem,2.4vh,1.6rem)] lg:grid-cols-[auto_minmax(0,1fr)_minmax(9rem,max-content)_minmax(0,1.15fr)] ${FOCUS}`}
+              className={`product-row group bg-am grid grid-cols-1 items-start gap-x-8 gap-y-2 py-[clamp(1.1rem,3.2vh,2.2rem)] lg:grid-cols-[minmax(0,0.55fr)_minmax(9rem,max-content)_minmax(0,1.35fr)] lg:items-baseline ${FOCUS}`}
             >
-              <span className="type-eyebrow type-index pt-2 text-[var(--ink-faint)] lg:pt-4">
-                {String(i + 1).padStart(2, "0")}
-              </span>
-
-              <span className="product-name type-product flex items-start gap-3 text-[var(--ink)]">
+              <span className="product-name type-product flex items-center gap-3 text-[var(--ink)]">
                 {product.name}
                 <HugeiconsIcon
                   icon={ArrowUpRight01Icon}
@@ -234,12 +256,16 @@ export default function WellnessCompany() {
                 />
               </span>
 
-              <span className="type-eyebrow text-[var(--ink)] lg:pt-4">
+              {/* Right-aligned so the label's trailing edge lands on the rail
+                  the description column starts from: the category and the
+                  sentence it labels now share one vertical guide, instead of
+                  the label floating in the middle of its own track. */}
+              <span className="type-eyebrow text-[var(--ink)]">
                 {product.category}
               </span>
 
-              <span className="type-copy-16 text-pretty text-[var(--ink-muted)] lg:pt-3">
-                o {product.note}
+              <span className="type-copy-18 text-pretty text-[var(--ink-muted)]">
+                {product.note}
               </span>
             </a>
           ))}

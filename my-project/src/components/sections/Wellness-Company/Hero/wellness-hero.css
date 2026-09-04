@@ -358,7 +358,7 @@
 .wellness-hero .type-wordmark {
   font-family: var(--font-serif, ui-serif, Georgia, serif);
   font-size: 26px;
-  line-height: 1;
+  line-height: 1.2;
   font-weight: 400;
   letter-spacing: -0.01em;
   white-space: nowrap;
@@ -407,11 +407,23 @@
  * The contained shapes (chip, secondary button) no longer take colour from
  * here — they are `.chip-brand` in section 6, which owns their whole surface. */
 .wellness-hero {
-  --paper: var(--brand-bg-subtle);
+  /* yellow-50 alone is a lemon cream and the photograph's own ground is a
+     warm peach one; they met mid-screen as a visible band, which made the
+     picture read as placed rather than dissolved. Cut with the warm neutral
+     so the ground loses its green cast and meets the photo. */
+  --paper: color-mix(in oklab, var(--brand-bg-subtle) 68%, var(--gray-ui) 32%);
   --ink: var(--gray-text-high);
   --ink-hover: var(--gray-solid-hover);
   --ink-muted: var(--gray-solid);
   --ink-faint: var(--gray-border-subtle);
+
+  /* Every hairline in the block — the chip's edge, the badge's ring, the rules
+     between product rows — is this one pair, and both are brand yellow rather
+     than stone. A neutral rule on a warm ground reads as grey dirt. Lines are
+     drawn with box-shadow, never `border`: a shadow adapts to whatever is
+     under it and costs no layout box. */
+  --line: color-mix(in srgb, var(--brand-border-subtle) 55%, transparent);
+  --line-strong: color-mix(in srgb, var(--brand-border-hover) 60%, transparent);
 }
 
 .dark .wellness-hero {
@@ -420,6 +432,8 @@
   --ink-hover: var(--gray-on-solid);
   --ink-muted: var(--gray-text-low);
   --ink-faint: var(--gray-solid);
+  --line: color-mix(in srgb, var(--brand-border-subtle) 45%, transparent);
+  --line-strong: color-mix(in srgb, var(--brand-border) 60%, transparent);
 }
 
 /* Headline. Serif, weight 400, set tight — the size is the only ornament in
@@ -512,16 +526,24 @@ section.wellness-hero {
     inset 0 -1px 0 color-mix(in srgb, var(--brand-text-high) 20%, transparent),
     0 1px 2px color-mix(in srgb, var(--brand-text-high) 16%, transparent),
     0 8px 16px -10px color-mix(in srgb, var(--brand-text-high) 55%, transparent);
+  /* `background-position` was in this list from when the gradient stretched to
+     the box; the stops are absolute pixels now and nothing moves it. */
   transition:
-    box-shadow 200ms ease,
-    background-position 200ms ease,
-    transform 200ms ease;
+    box-shadow 200ms var(--ease-surface),
+    transform 200ms var(--ease-surface);
 }
 
 /* Hover lifts by exactly 1px and deepens the ambient shadow. Anything more and
-   the pill stops being a button on paper and starts being a floating card. */
+   the pill stops being a button on paper and starts being a floating card.
+   Gated: on touch, a tap fires :hover and the lift would stay up after the
+   finger left. */
+@media (hover: hover) and (pointer: fine) {
+  .wellness-hero .pill-brand:hover {
+    transform: translateY(-1px);
+  }
+}
+
 .wellness-hero .pill-brand:hover {
-  transform: translateY(-1px);
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, #fff 42%, transparent),
     inset 0 -1px 0 color-mix(in srgb, var(--brand-text-high) 20%, transparent),
@@ -530,9 +552,14 @@ section.wellness-hero {
       color-mix(in srgb, var(--brand-text-high) 60%, transparent);
 }
 
-/* Press seats it back into the paper: no lift, contact shadow only. */
+/* Press seats it back into the paper: contact shadow only, and the whole pill
+   takes a 3% squeeze. It used to only cancel the hover lift, which meant a
+   keyboard or touch press — neither of which ever lifted — had no press motion
+   at all. Faster than the hover, because a press is deliberate and its
+   response should snap. */
 .wellness-hero .pill-brand:active {
-  transform: translateY(0);
+  transform: scale(0.97);
+  transition-duration: 120ms;
   box-shadow:
     inset 0 1px 2px color-mix(in srgb, var(--brand-text-high) 28%, transparent),
     0 1px 1px color-mix(in srgb, var(--brand-text-high) 14%, transparent);
@@ -543,7 +570,7 @@ section.wellness-hero {
   .wellness-hero .pill-brand:hover,
   .wellness-hero .pill-brand:active {
     transform: none;
-    transition: box-shadow 200ms ease;
+    transition: box-shadow 200ms var(--ease-surface);
   }
 }
 
@@ -570,25 +597,30 @@ section.wellness-hero {
     var(--brand-ui) 26px,
     var(--brand-ui-hover) 52px
   );
-  border: 1px solid
-    color-mix(in srgb, var(--brand-border-subtle) 40%, transparent);
   box-shadow:
+    inset 0 0 0 1px var(--line),
     inset 0 1px 0 color-mix(in srgb, #fff 85%, transparent),
     inset 0 -1px 0 color-mix(in srgb, var(--brand-text-high) 12%, transparent),
     0 1px 1px color-mix(in srgb, var(--brand-text-high) 6%, transparent),
     0 6px 14px -12px color-mix(in srgb, var(--brand-text-high) 30%, transparent);
   transition:
-    box-shadow 200ms ease,
-    border-color 200ms ease,
-    transform 200ms ease;
+    box-shadow 200ms var(--ease-surface),
+    transform 200ms var(--ease-surface);
 }
 
-/* Only the interactive one moves. The chip is a label and stays put. */
+/* Only the interactive one moves. The chip is a label and stays put. The lift
+   is gated for the same reason as the pill's. */
+@media (hover: hover) and (pointer: fine) {
+  .wellness-hero a.chip-brand:hover,
+  .wellness-hero button.chip-brand:hover {
+    transform: translateY(-1px);
+  }
+}
+
 .wellness-hero a.chip-brand:hover,
 .wellness-hero button.chip-brand:hover {
-  transform: translateY(-1px);
-  border-color: color-mix(in srgb, var(--brand-border-subtle) 60%, transparent);
   box-shadow:
+    inset 0 0 0 1px var(--line-strong),
     inset 0 1px 0 color-mix(in srgb, #fff 80%, transparent),
     inset 0 -1px 0 color-mix(in srgb, var(--brand-text-high) 6%, transparent),
     0 1px 1px color-mix(in srgb, var(--brand-text-high) 8%, transparent),
@@ -598,8 +630,10 @@ section.wellness-hero {
 
 .wellness-hero a.chip-brand:active,
 .wellness-hero button.chip-brand:active {
-  transform: translateY(0);
+  transform: scale(0.97);
+  transition-duration: 120ms;
   box-shadow:
+    inset 0 0 0 1px var(--line-strong),
     inset 0 1px 2px color-mix(in srgb, var(--brand-text-high) 14%, transparent),
     0 1px 1px color-mix(in srgb, var(--brand-text-high) 6%, transparent);
 }
@@ -611,14 +645,8 @@ section.wellness-hero {
     transform: none;
     transition:
       box-shadow 200ms ease,
-      border-color 200ms ease;
+      border-color 200ms var(--ease-surface);
   }
-}
-
-/* The row index. Lining, tabular digits so 01/02/03 sit on one rail and a
- * two-digit range never shifts the column. */
-.wellness-hero .type-index {
-  font-variant-numeric: tabular-nums lining-nums;
 }
 
 /* ------------------------------------------------------- 7. THE PRODUCT TABLE
@@ -638,17 +666,26 @@ section.wellness-hero {
   text-wrap: balance;
 }
 
-.wellness-hero .product-row:hover,
-.wellness-hero .product-row:focus-visible {
-  border-top-color: color-mix(in srgb, var(--gray-border) 70%, transparent);
-}
-
 .wellness-hero .product-arrow {
-  transition: transform 220ms cubic-bezier(0.2, 0, 0, 1);
+  transition: transform 220ms var(--ease-nudge);
 }
-.wellness-hero .product-row:hover .product-arrow,
+/* Focus-visible is never phantom, so it stays ungated; hover is gated so a tap
+   does not leave the arrow parked off its glyph. In RTL the arrow mirrors to
+   point up-left, so its travel has to mirror with it. */
 .wellness-hero .product-row:focus-visible .product-arrow {
   transform: translate(3px, -3px);
+}
+[dir="rtl"] .wellness-hero .product-row:focus-visible .product-arrow {
+  transform: translate(-3px, -3px);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .wellness-hero .product-row:hover .product-arrow {
+    transform: translate(3px, -3px);
+  }
+  [dir="rtl"] .wellness-hero .product-row:hover .product-arrow {
+    transform: translate(-3px, -3px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -695,34 +732,54 @@ section.wellness-hero {
 /* 2. A row of the product table is a link, but it is styled like the ruled
  *    text around it, which is the one thing a control must not be. It cannot
  *    take a filled shape without becoming a card, so it gets the two cues a
- *    reader already knows: the whole row lifts onto a barely-there tint that
- *    bleeds past the measure, and the name underlines. Both fire on
+ *    reader already knows: the rule above it firms up and the name underlines,
+ *    with the arrow stepping in the direction it points. Both fire on
  *    :focus-visible as well as :hover, so keyboard and pointer see the same
- *    thing. */
+ *    thing.
+ *
+ *    No hover tint. A filled row on this paper reads as a card, which is the
+ *    one thing the table is built not to be — the rules do the grouping. */
+/* The rule above each row is a 1px ::before, not a border and not a shadow —
+   because it has to FADE. Run at full strength it reaches past the longest
+   description and carries on under the photograph, which is the one thing
+   nothing in this block is allowed to do: everything else dissolves before it
+   meets the picture. The line is a solid colour under a horizontal mask, so
+   the colour still transitions on hover (a gradient's stops do not animate)
+   while the tail stays soft. */
 .wellness-hero .product-row {
-  transition:
-    border-color 200ms ease,
-    background-color 200ms ease;
-  box-shadow:
-    -1.5rem 0 0 transparent,
-    1.5rem 0 0 transparent;
-}
-.wellness-hero .product-row:hover,
-.wellness-hero .product-row:focus-visible {
-  background-color: color-mix(in srgb, var(--brand-ui) 55%, transparent);
-  box-shadow:
-    -1.5rem 0 0 color-mix(in srgb, var(--brand-ui) 55%, transparent),
-    1.5rem 0 0 color-mix(in srgb, var(--brand-ui) 55%, transparent);
+  position: relative;
 }
 
-/* the bleed matches the layout margin, which doubles at md */
-@media (min-width: 48rem) {
-  .wellness-hero .product-row:hover,
-  .wellness-hero .product-row:focus-visible {
-    box-shadow:
-      -3rem 0 0 color-mix(in srgb, var(--brand-ui) 55%, transparent),
-      3rem 0 0 color-mix(in srgb, var(--brand-ui) 55%, transparent);
-  }
+.wellness-hero .product-row::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 1px;
+  background-color: var(--line);
+  -webkit-mask-image: linear-gradient(
+    to right,
+    #000 0%,
+    #000 58%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(to right, #000 0%, #000 58%, transparent 100%);
+  transition: background-color 200ms var(--ease-surface);
+}
+
+[dir="rtl"] .wellness-hero .product-row::before {
+  -webkit-mask-image: linear-gradient(
+    to left,
+    #000 0%,
+    #000 58%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(to left, #000 0%, #000 58%, transparent 100%);
+}
+
+.wellness-hero .product-row:hover::before,
+.wellness-hero .product-row:focus-visible::before {
+  background-color: var(--line-strong);
 }
 
 .wellness-hero .product-name {
@@ -731,7 +788,7 @@ section.wellness-hero {
   text-decoration-thickness: from-font;
   text-decoration-skip-ink: auto;
   text-underline-offset: 0.12em;
-  transition: text-decoration-color 200ms ease;
+  transition: text-decoration-color 200ms var(--ease-surface);
 }
 .wellness-hero .product-row:hover .product-name,
 .wellness-hero .product-row:focus-visible .product-name {
@@ -745,7 +802,41 @@ section.wellness-hero {
   }
 }
 
-/* The badge, used inside BOTH buttons. The gold face is the light half of the
+/* The secondary's badge. An ink box on a yellow-100 face was the highest-
+ * contrast element in the whole button group — the eye hit the LESSER action
+ * hardest. Outlined instead: same box, same size, no fill, so the marker is
+ * legible without out-weighing the gold face beside it. */
+.wellness-hero .chip-badge {
+  /* An outline alone put the badge within one step of the face it sits on —
+     yellow-50/100 under a yellow-400 hairline is not a shape, it is a smudge.
+     It gets a face of its own, two steps down the same ramp (300 -> 400 over
+     its own 32px, the same light-from-above construction as the buttons), so
+     it reads as an object without becoming the ink block that used to
+     out-weigh the primary. Hierarchy intact: ink badge on the gold face,
+     yellow badge on the pale one. */
+  background-color: var(--brand-ui-active);
+  background-image: linear-gradient(
+    180deg,
+    var(--brand-ui-active) 0px,
+    var(--brand-border-subtle) 32px
+  );
+  color: var(--brand-text-high);
+  box-shadow:
+    inset 0 0 0 1px var(--line-strong),
+    inset 0 1px 0 color-mix(in srgb, #fff 45%, transparent);
+  transition:
+    box-shadow 200ms var(--ease-surface),
+    background-color 200ms var(--ease-surface),
+    color 200ms var(--ease-surface);
+}
+.wellness-hero .chip-brand:hover .chip-badge {
+  background-color: var(--brand-border-subtle);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--brand-solid) 55%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 45%, transparent);
+}
+
+/* The primary's badge, used inside `.pill-brand`. The gold face is the light half of the
  * ramp,
  * so its badge has to be the dark end of it — an ink box, not another gold
  * one, or the icon disappears into the button. The secondary carries the same
@@ -756,4 +847,152 @@ section.wellness-hero {
   background-color: var(--brand-text-high);
   color: var(--brand-bg-subtle);
   box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 14%, transparent);
+}
+
+/* ---------------------------------------------------------- 9. THE ENTRANCE
+ * One-shot and autonomous: it plays once, on load, and nobody can interrupt a
+ * page load — which is exactly what @keyframes are for. Transitions stay for
+ * the states a user can interrupt.
+ *
+ * This is a marketing hero, seen once per visit. The purpose is explanation:
+ * varied timing lets the eye read headline → sentence → action in that order,
+ * instead of hunting a page that painted all at once.
+ *
+ * Hierarchy is carried by DISTANCE as well as by delay — the headline travels
+ * 12px, the sentence 10px, the actions 8px. A uniform stagger reads
+ * artificial. Steps are 120ms apart on one steep ease-out, so the arrivals
+ * read as a single sequence rather than separate loads.
+ *
+ * Calm, not quick. Everything runs long (800-900ms) and each element also
+ * pulls focus out of a 6px blur, which is what makes it read as settling
+ * rather than sliding: an out-of-focus thing coming into focus is the one
+ * entrance the eye reads as unhurried. The curve is still steep, so length
+ * costs nothing in responsiveness — the movement is over early and the last
+ * of it is a long, slow settle. Blur stays well under the ~20px where it
+ * starts costing frames.
+ *
+ * The photograph is the exception: the heaviest object on the sheet, so it
+ * gets the longest run and no travel at all — it settles out of a 3% scale
+ * rather than sliding, because a picture that size sliding is a slideshow. */
+@keyframes wellness-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, var(--rise, 12px), 0);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+@keyframes wellness-settle {
+  from {
+    opacity: 0;
+    transform: scale(1.03);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+@keyframes wellness-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.wellness-hero .enter {
+  animation: wellness-rise 800ms var(--ease-entrance) both;
+  animation-delay: var(--enter-delay, 0ms);
+}
+
+/* The block's motion vocabulary. Three curves, named, so the next edit picks
+ * one instead of inventing a fourth:
+ *   entrance — steep front-loaded ease-out; long runs that still feel prompt
+ *   nudge    — short, sharp; 2-3px icon travel on hover
+ *   surface  — CSS `ease`; colour, shadow and border on interactive surfaces */
+.wellness-hero {
+  --ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-nudge: cubic-bezier(0.2, 0, 0, 1);
+  --ease-surface: ease;
+}
+
+/* The two slow layers share one duration, so the picture and the table move
+ * at the same pace and read as the same weight of object. They do NOT share a
+ * start: the photograph comes in with the hero, the table waits for it to
+ * finish speaking. Same speed, different moment. */
+.wellness-hero {
+  --calm-duration: 1650ms;
+}
+
+/* 6px, not 10px: this is a ~50vw x 100vh raster with a live `mask-image`, so
+ * every animated frame re-composites the mask under the blur — the classic
+ * Safari jank case, and the one surface in the block big enough to matter. At
+ * this scale 6px reads the same. `will-change` promotes it for the run; it is
+ * one element, and the mask already forces it onto its own layer. */
+.wellness-hero .enter-photo {
+  animation: wellness-settle var(--calm-duration) var(--ease-entrance) 150ms
+    both;
+  will-change: filter, transform, opacity;
+}
+
+/* The product table arrives as ONE object, late. It is the second thing on
+ * the page, not the fourth line of the first thing, so it waits until the
+ * hero has finished speaking (~740ms) and then rises whole. Deliberately no
+ * stagger between the rows: staggering them would make the reader wait for
+ * content they scrolled to read, and three near-identical rows trickling in
+ * reads as a list loading rather than as a table arriving.
+ *
+ * It runs at --calm-duration, the photograph's pace. The curve is front-
+ * loaded, so the run is not that much visible travel — the movement is over
+ * early and the tail is a long settle nobody waits on. */
+.wellness-hero .enter-block {
+  animation: wellness-rise var(--calm-duration) var(--ease-entrance) 700ms both;
+  --rise: 14px;
+}
+
+/* The arrow in the secondary's badge. It points somewhere, so it should move
+ * when the button is pointed at — 2px, on the ICON and never on the badge,
+ * because `.chip-brand:hover` already owns a 1px lift on the button itself and
+ * two transforms on nested boxes fight each other. The primary's badge carries
+ * a message glyph, which is not directional and therefore gets nothing:
+ * movement that means nothing is decoration. Hover is gated so a tap on touch
+ * does not fire a phantom hover. */
+.wellness-hero .badge-icon {
+  transition: transform 150ms var(--ease-nudge);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .wellness-hero .chip-brand:hover .badge-icon {
+    transform: translateX(2px);
+  }
+  [dir="rtl"] .wellness-hero .chip-brand:hover .badge-icon {
+    transform: translateX(-2px);
+  }
+}
+
+/* Reduced motion is gentler, not absent: the sequence keeps its order and its
+ * delays, so the page still reads in the intended order, and loses only the
+ * movement — no travel, no scale. */
+@media (prefers-reduced-motion: reduce) {
+  .wellness-hero .enter,
+  .wellness-hero .enter-photo,
+  .wellness-hero .enter-block {
+    animation-name: wellness-fade;
+    animation-duration: 400ms;
+  }
+  .wellness-hero .badge-icon {
+    transition: none;
+  }
+  .wellness-hero .chip-brand:hover .badge-icon {
+    transform: none;
+  }
 }
