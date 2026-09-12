@@ -8,7 +8,6 @@ import {
   arc,
   motion,
   useAnimationControls,
-  useAnimationFrame,
   useMotionValue,
   useReducedMotion,
   type TargetAndTransition,
@@ -121,9 +120,9 @@ const PAD_GAP = 2;
  *
  * Reuse matters: the docs are explicit that a fresh `arc()` has no memory of
  * its own continuity, so each leg's instance is memoised on its options. */
-export type Bulge = "cw" | "ccw" | "auto";
+type Bulge = "cw" | "ccw" | "auto";
 
-export type Leg = {
+type Leg = {
   /* How far the arc bulges perpendicular to the straight line, as a fraction
      of the distance travelled. 0 is a straight line; 1 peaks at the full
      travel distance. */
@@ -141,7 +140,7 @@ export type Leg = {
   duration: number;
 };
 
-export type Flight = {
+type Flight = {
   /* Where the face comes to rest, as a fraction of stage height. */
   rise: number;
   /* How much bigger it gets. 2.19 = 84px → 184px. */
@@ -151,6 +150,10 @@ export type Flight = {
   /* Pacing ALONG the arc. The path decides the shape, this decides how fast
      you move over it. */
   ease: [number, number, number, number];
+  /* The tap before the launch. Its own node and its own tween: a dip that has
+     to be SEEN before the rise cannot be left to a spring, which would blend
+     it into the climb. `handoff` is how long the growth waits for it. */
+  anticipate: { scale: number; duration: number; handoff: number };
   /* Scale rides its own spring, independent of the journey. */
   grow: { visualDuration: number; bounce: number };
   shrink: { visualDuration: number; bounce: number };
@@ -167,8 +170,6 @@ export type Flight = {
     visualDuration: number;
     bounce: number;
   };
-  /* Traces the flight over the stage. A tuning aid, off in production. */
-  showPath: boolean;
 };
 
 /* Scene 2. Set this false and the face flies out and simply waits at the
@@ -176,7 +177,11 @@ export type Flight = {
  * is the loop you want while tuning the arc alone. */
 const PIN_ENABLED = true;
 
-export const DEFAULT_FLIGHT: Flight = {
+/* Tuned live in a DialKit panel, then frozen here. Every value below was a
+ * slider; the panel and its route are gone, and putting them back means
+ * wrapping this object in useDialKit again — nothing else in the block knew
+ * the panel existed, which is what made it removable in one commit. */
+const FLIGHT: Flight = {
   rise: 0.25,
   growth: 2.19,
   /* An early peak: the face is flung out of the row and coasts into the
@@ -197,13 +202,34 @@ export const DEFAULT_FLIGHT: Flight = {
     duration: 0.58,
   },
   ease: [0.32, 0, 0.24, 1],
-  grow: { visualDuration: 0.5, bounce: 0.2 },
+  anticipate: { scale: 0.86, duration: 0.3, handoff: 0.07 },
+  /* Bouncier than a settle. The face is being thrown, and an overshoot on
+     arrival is what says so. */
+  grow: { visualDuration: 0.46, bounce: 0.34 },
   /* The shrink is quicker and bouncier than the grow: going home is not a
      decision, so it snaps rather than settles. */
   shrink: { visualDuration: 0.3, bounce: 0.4 },
   pad: { enterAt: 0.8, exitBy: 0.2, visualDuration: 0.34, bounce: 0.2 },
-  showPath: false,
 };
+
+/* One instance per leg, built once. The docs are blunt about this: a fresh
+ * arc() has no memory, so rebuilding it would throw away the continuity
+ * closure that keeps an interrupted flight from snapping. Module scope is
+ * exactly where they say to put it, now that the options are fixed. */
+const ARC_OUT = arc({
+  strength: FLIGHT.out.strength,
+  peak: FLIGHT.out.peak,
+  direction: FLIGHT.out.direction === "auto" ? undefined : FLIGHT.out.direction,
+  rotate: FLIGHT.out.rotate,
+});
+
+const ARC_HOME = arc({
+  strength: FLIGHT.home.strength,
+  peak: FLIGHT.home.peak,
+  direction:
+    FLIGHT.home.direction === "auto" ? undefined : FLIGHT.home.direction,
+  rotate: FLIGHT.home.rotate,
+});
 
 /* ── Transitions that are not the flight ──────────────────
  * A plain spring for everything that is neither the flight nor the pad. */
@@ -481,21 +507,7 @@ function Avatar({
   );
 }
 
-export default function ProfileGate({
-  className,
-  flight = DEFAULT_FLIGHT,
-  runToken,
-  runIndex = 2,
-}: {
-  className?: string;
-  /* Defaulted, so the block is a plain component everywhere except the
-     tuning route. Nothing below knows a panel exists. */
-  flight?: Flight;
-  /* Bumping this token flies the face out, or brings it home if it is
-     already up — the tuning loop, driven from the dial panel. */
-  runToken?: number;
-  runIndex?: number;
-}) {
+export default function ProfileGate({ className }: { className?: string }) {
   const reduced = useReducedMotion();
 
   const [phase, setPhase] = useState<Phase>("idle");
@@ -538,25 +550,10 @@ export default function ProfileGate({
      x and the flight's own x would be the same transform fighting. */
   const shake = useAnimationControls();
 
-  /* Owned here rather than left to Motion, so the trace can read the exact
-     position being rendered each frame. */
+  /* Owned rather than left to Motion, so the ascent can be seeded at the
+     slot it is leaving before the leg starts. */
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-  const trail = useRef<string[]>([]);
-  const tracePath = useRef<SVGPolylineElement | null>(null);
-
-  /* Sampling is frame-synced and writes straight to the attribute: pushing a
-     point into React state sixty times a second would re-render the whole
-     block mid-flight, which is the one place it must not. */
-  useAnimationFrame(() => {
-    if (!flight.showPath || chosen === null) return;
-    trail.current.push(
-      `${(x.get() + AVATAR / 2).toFixed(1)},${(y.get() + AVATAR / 2).toFixed(1)}`,
-    );
-    if (trail.current.length > 400) trail.current.shift();
-    tracePath.current?.setAttribute("points", trail.current.join(" "));
-  });
-
   const gating = phase !== "idle";
   const locked = phase === "verifying" || phase === "granted";
   /* The phases the pad belongs to, listed rather than expressed as "not
@@ -610,31 +607,18 @@ export default function ProfileGate({
     };
   }
 
-  /* A measurement of the slot the tuning panel flies, taken while nothing is
-     happening. Without it the trajectory could only be drawn DURING a flight —
-     which is exactly when you cannot study it. */
-  const [resting, setResting] = useState<Travel | null>(null);
-  useEffect(() => {
-    if (!flight.showPath) return;
-    const remeasure = () => setResting(measure(runIndex));
-    remeasure();
-    window.addEventListener("resize", remeasure);
-    return () => window.removeEventListener("resize", remeasure);
-  }, [flight.showPath, runIndex]);
-
-  const source = travel ?? resting;
-  const big = AVATAR * flight.growth;
+  const big = AVATAR * FLIGHT.growth;
 
   const target = useMemo(() => {
-    if (!source) return null;
+    if (!travel) return null;
     const to = {
-      x: source.stage.w / 2,
+      x: travel.stage.w / 2,
       /* Held off the top edge so the face never crowds the heading, and low
          enough that the pad below it stays inside the stage. */
-      y: Math.max(24 + big / 2, source.stage.h * flight.rise),
+      y: Math.max(24 + big / 2, travel.stage.h * FLIGHT.rise),
     };
     return { to, padTop: to.y + big / 2 + PAD_GAP };
-  }, [source, big, flight.rise]);
+  }, [travel, big]);
 
   /* A measured FLIP is only correct for the size it was measured at, so the
      geometry is recomputed whenever the stage changes shape mid-flight. */
@@ -671,16 +655,6 @@ export default function ProfileGate({
   function dismiss() {
     if (!gating || locked || phase === "home") return;
     setHomePoint(null);
-    setPhase("falling");
-  }
-
-  /* The way back out. The face is already sitting in the Profile tab, and x/y
-     still hold exactly where it landed, so the descent can start from there
-     with nothing to seed — it just flies to a different destination. */
-  function switchProfile() {
-    if (phase !== "home" || !travel) return;
-    setSignedIn(false);
-    setHomePoint(travel.from);
     setPhase("falling");
   }
 
@@ -727,22 +701,6 @@ export default function ProfileGate({
     if (digits.length === 4) verify(digits);
   }
 
-  /* Driven from the dial panel: one action that flies the face out, and the
-     same action again to bring it home. Tuning an arc means watching it over
-     and over, and reaching for the mouse to click a face every time is the
-     difference between tuning it and giving up on it. */
-  const firstRun = useRef(true);
-  useEffect(() => {
-    if (runToken === undefined) return;
-    if (firstRun.current) {
-      firstRun.current = false;
-      return;
-    }
-    if (phase === "idle") pick(runIndex);
-    else if (!locked) setPhase("falling");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [runToken]);
-
   /* Focus lands only once the face has finished flying. Focusing mid-flight
      makes the browser scroll to a rectangle that is still moving. */
   useEffect(() => {
@@ -758,44 +716,6 @@ export default function ProfileGate({
      labels, turning a dial rebuilt the pose and nothing moved. Against an
      object it diffs the values, and the memo below keeps the identity stable
      so unrelated re-renders cannot restart the flight. */
-  /* One instance per leg, memoised on its own options. The docs are blunt
-     about this: a fresh arc() has no memory, so rebuilding it every render
-     would throw away the continuity closure that keeps a re-aimed flight from
-     snapping. */
-  const arcOut = useMemo(
-    () =>
-      arc({
-        strength: flight.out.strength,
-        peak: flight.out.peak,
-        direction:
-          flight.out.direction === "auto" ? undefined : flight.out.direction,
-        rotate: flight.out.rotate,
-      }),
-    [
-      flight.out.strength,
-      flight.out.peak,
-      flight.out.direction,
-      flight.out.rotate,
-    ],
-  );
-
-  const arcHome = useMemo(
-    () =>
-      arc({
-        strength: flight.home.strength,
-        peak: flight.home.peak,
-        direction:
-          flight.home.direction === "auto" ? undefined : flight.home.direction,
-        rotate: flight.home.rotate,
-      }),
-    [
-      flight.home.strength,
-      flight.home.peak,
-      flight.home.direction,
-      flight.home.rotate,
-    ],
-  );
-
   /* Two plain targets now. No keyframes, no apex, no second easing: x and y
      go straight to their destination and `path` bends the line between. */
   const poses = useMemo<
@@ -818,9 +738,9 @@ export default function ProfileGate({
         y: to.y - half,
         opacity: 1,
         transition: {
-          duration: flight.out.duration,
-          ease: flight.ease,
-          path: arcOut,
+          duration: FLIGHT.out.duration,
+          ease: FLIGHT.ease,
+          path: ARC_OUT,
           opacity: { duration: 0.2 },
         },
       },
@@ -829,13 +749,13 @@ export default function ProfileGate({
         y: (homePoint ?? from).y - half,
         opacity: 1,
         transition: {
-          duration: flight.home.duration,
-          ease: flight.ease,
-          path: arcHome,
+          duration: FLIGHT.home.duration,
+          ease: FLIGHT.ease,
+          path: ARC_HOME,
         },
       },
     };
-  }, [travel, target, flight, arcOut, arcHome, homePoint]);
+  }, [travel, target, homePoint]);
 
   /* The flight is driven imperatively, and it has to be. Handing Motion a
      target object only re-animates when the VALUES change — and every dial on
@@ -870,7 +790,6 @@ export default function ProfileGate({
       y.set(travel.from.y - AVATAR / 2);
     }
 
-    trail.current = [];
     /* Spread, because `arc()` mutates the target it is handed. Passing the
        memoised pose straight in would let the first flight strip x and y out
        of it, and every flight after that would animate nothing. */
@@ -912,8 +831,8 @@ export default function ProfileGate({
      the gap and the face are one movement rather than two that happen to
      overlap. */
   const rowTravel: Transition = {
-    duration: phase === "falling" ? flight.home.duration : flight.out.duration,
-    ease: flight.ease,
+    duration: phase === "falling" ? FLIGHT.home.duration : FLIGHT.out.duration,
+    ease: FLIGHT.ease,
   };
 
   /* One bar out, one bar in, over exactly the descent. Not a hand-off with a
@@ -921,8 +840,8 @@ export default function ProfileGate({
      being half-visible under it is what makes the swap feel like one event
      rather than two. */
   const barFade: Transition = {
-    duration: flight.home.duration,
-    ease: flight.ease,
+    duration: FLIGHT.home.duration,
+    ease: FLIGHT.ease,
   };
 
   /* The pad arrives in the last fifth of the ascent — late enough that the
@@ -930,9 +849,9 @@ export default function ProfileGate({
      movement rather than a screen that loads after an animation. */
   const padIn: Transition = {
     type: "spring",
-    visualDuration: flight.pad.visualDuration,
-    bounce: flight.pad.bounce,
-    delay: flight.pad.enterAt * flight.out.duration,
+    visualDuration: FLIGHT.pad.visualDuration,
+    bounce: FLIGHT.pad.bounce,
+    delay: FLIGHT.pad.enterAt * FLIGHT.out.duration,
   };
 
   /* And leaves in the first fifth of the descent, with no delay at all: the
@@ -940,7 +859,7 @@ export default function ProfileGate({
      back happens over an empty stage. A pad still fading at the halfway point
      would be a thing the face has to fly past. */
   const padOut: Transition = {
-    duration: flight.pad.exitBy * flight.home.duration,
+    duration: FLIGHT.pad.exitBy * FLIGHT.home.duration,
     ease: "easeIn",
   };
 
@@ -976,11 +895,10 @@ export default function ProfileGate({
             <div
               ref={stageRef}
               onKeyDown={(event) => {
-                /* Escape means "undo the last thing": on the way in that is
-                   the gate, once you are through it is the sign-in. */
+                /* Escape backs out of the gate. Past it there is nothing
+                   to back out of — signing in is the end of the flow. */
                 if (event.key !== "Escape") return;
-                if (phase === "home") switchProfile();
-                else dismiss();
+                dismiss();
               }}
               style={{ borderRadius: BODY_RADIUS - BEZEL }}
               /* A white screen inside a dark body. Everything on it is
@@ -1171,11 +1089,15 @@ export default function ProfileGate({
               >
                 <button
                   type="button"
-                  onClick={switchProfile}
+                  /* The tab you are already on. Activating it is a no-op by
+                     design — the same as pressing the current tab anywhere
+                     else — which is why it announces a state and not an
+                     action. */
+                  aria-current="page"
                   aria-label={
                     chosen === null
                       ? "Profile"
-                      : `Signed in as ${FACES[chosen].name}. Switch profile.`
+                      : `Profile, signed in as ${FACES[chosen].name}`
                   }
                   style={{ borderRadius: RADIUS + RING_INSET }}
                   className="group flex cursor-pointer flex-col items-center gap-2.5 outline-none focus-visible:ring-2 focus-visible:ring-[#0b0b0b] focus-visible:ring-offset-4 focus-visible:ring-offset-white"
@@ -1226,18 +1148,6 @@ export default function ProfileGate({
                 ))}
               </motion.nav>
 
-              {/* ── The path, traced ──
-            The line the face actually flew, recorded frame by frame. Off
-            unless a dial turns it on. */}
-              {flight.showPath && source && target && (
-                <FlightTrace
-                  points={tracePath}
-                  from={source.from}
-                  to={target.to}
-                  stage={source.stage}
-                />
-              )}
-
               {/* ── The traveller ──
             One node from the moment you click to the moment it is home. */}
               <AnimatePresence>
@@ -1256,22 +1166,52 @@ export default function ProfileGate({
                       initial={{ opacity: reduced ? 0 : 1 }}
                       animate={fly}
                     >
-                      {/* The growth is a SEPARATE node from the journey, and
-                  declarative. It used to ride in the same target as x and y,
-                  which `arc()` takes ownership of and mutates — scale was
-                  going in as part of a handshake it was never party to. Split
-                  out like this it is just a box getting bigger, and the only
-                  thing the path can affect is where that box is. */}
+                      {/* THREE nodes, three jobs, and the scales multiply.
+                            x/y  — the journey, owned by arc()
+                            dip  — the tap: a quick squash and release
+                            grow — the size, on a bouncy spring
+
+                          They are separate because they are different physics.
+                          One scale carrying both would have to blend a
+                          fixed-length dip into an open-ended spring, and
+                          whichever won, the squash would stop being its own
+                          beat. Multiplied, the dip happens underneath the
+                          climb without either knowing about the other.
+
+                          (The size was split off the journey for a different
+                          reason: it used to ride in the same target as x and
+                          y, which arc() takes ownership of and mutates.) */}
                       <motion.div
                         className="h-full w-full"
                         initial={{ scale: 1 }}
-                        animate={{ scale: grown ? flight.growth : 1 }}
+                        /* Down and back. The release is not a separate beat —
+                           by the time it returns to 1 the spring below has
+                           taken over, so what you see is a press that turns
+                           into a launch. */
+                        animate={{
+                          scale: grown ? [1, FLIGHT.anticipate.scale, 1] : 1,
+                        }}
                         transition={{
-                          type: "spring",
-                          ...(grown ? flight.grow : flight.shrink),
+                          duration: FLIGHT.anticipate.duration,
+                          times: [0, 0.3, 1],
+                          ease: ["easeOut", "easeOut"],
                         }}
                       >
-                        <Avatar index={chosen} />
+                        <motion.div
+                          className="h-full w-full"
+                          initial={{ scale: 1 }}
+                          animate={{ scale: grown ? FLIGHT.growth : 1 }}
+                          transition={{
+                            type: "spring",
+                            ...(grown ? FLIGHT.grow : FLIGHT.shrink),
+                            /* Long enough for the dip to be its own beat.
+                               Without it the rise starts on the same frame as
+                               the squash and cancels it. */
+                            delay: grown ? FLIGHT.anticipate.handoff : 0,
+                          }}
+                        >
+                          <Avatar index={chosen} />
+                        </motion.div>
                       </motion.div>
                     </motion.div>
                   )}
@@ -1535,53 +1475,5 @@ export default function ProfileGate({
         </div>
       </div>
     </MotionConfig>
-  );
-}
-
-/* ── Tracing the flight ───────────────────────────────────
- * Not a prediction. The old preview re-implemented the curve in order to draw
- * it, which meant the line was only ever as honest as the copy; `arc()` keeps
- * its geometry to itself anyway. This records where the face WENT, sampled off
- * the same motion values Motion is animating, so the line cannot disagree with
- * the flight by construction. */
-function FlightTrace({
-  points,
-  from,
-  to,
-  stage,
-}: {
-  points: React.RefObject<SVGPolylineElement | null>;
-  from: { x: number; y: number };
-  to: { x: number; y: number };
-  stage: { w: number; h: number };
-}) {
-  return (
-    <svg
-      aria-hidden="true"
-      className="pointer-events-none absolute inset-0 z-20"
-      width={stage.w}
-      height={stage.h}
-    >
-      {/* The chord. Everything interesting about an arc is its distance from
-          this line — `strength` is literally measured against it. */}
-      <line
-        x1={from.x}
-        y1={from.y}
-        x2={to.x}
-        y2={to.y}
-        stroke="#fff"
-        strokeOpacity={0.16}
-        strokeDasharray="2 5"
-      />
-      <polyline
-        ref={points}
-        fill="none"
-        stroke="#4cc85c"
-        strokeWidth={1.5}
-        strokeOpacity={0.85}
-      />
-      <circle cx={from.x} cy={from.y} r={3} fill="#fff" fillOpacity={0.5} />
-      <circle cx={to.x} cy={to.y} r={3} fill="#fff" fillOpacity={0.5} />
-    </svg>
   );
 }
