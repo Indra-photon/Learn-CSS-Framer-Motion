@@ -414,7 +414,12 @@
   --paper: color-mix(in oklab, var(--brand-bg-subtle) 68%, var(--gray-ui) 32%);
   --ink: var(--gray-text-high);
   --ink-hover: var(--gray-solid-hover);
-  --ink-muted: var(--gray-solid);
+  /* stone-800, not stone-700: measured against --paper (#fbfaec) the 700 stop
+     is 3.39:1, and both places this token renders — the 18px deck and the 16px
+     row description — are body sizes that need 4.5:1. The 800 stop measures
+     5.20:1. Neither size qualifies as large text (that starts at 18.66px bold
+     or 24px regular). */
+  --ink-muted: var(--gray-solid-hover);
   --ink-faint: var(--gray-border-subtle);
 
   /* Every hairline in the block — the chip's edge, the badge's ring, the rules
@@ -424,6 +429,18 @@
      under it and costs no layout box. */
   --line: color-mix(in srgb, var(--brand-border-subtle) 55%, transparent);
   --line-strong: color-mix(in srgb, var(--brand-border-hover) 60%, transparent);
+
+  /* Text on the filled pill. The pill's face is the LIGHT half of the brand
+     ramp in both themes, so its foreground is theme-invariant — which is why
+     this one role points at the primitive rather than at --gray-text-high,
+     whose job is to flip with the theme.
+
+     It was --brand-text-high (yellow-950), which measured 4.97:1 at the top of
+     the gradient and 3.81:1 at the foot: the same 16px/500 label passed across
+     its x-height and failed across its descenders. stone-950 measures 10.73:1
+     to 8.22:1 over the identical ramp, so the three-step gold survives intact
+     and only the ink changed. */
+  --on-brand-face: var(--color-stone-950);
 }
 
 .dark .wellness-hero {
@@ -434,6 +451,7 @@
   --ink-faint: var(--gray-solid);
   --line: color-mix(in srgb, var(--brand-border-subtle) 45%, transparent);
   --line-strong: color-mix(in srgb, var(--brand-border) 60%, transparent);
+  --on-brand-face: var(--color-stone-950);
 }
 
 /* Headline. Serif, weight 400, set tight — the size is the only ornament in
@@ -520,7 +538,7 @@ section.wellness-hero {
     var(--brand-ui-active) 24px,
     var(--brand-border) 52px
   );
-  color: var(--brand-text-high);
+  color: var(--on-brand-face);
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, #fff 34%, transparent),
     inset 0 -1px 0 color-mix(in srgb, var(--brand-text-high) 20%, transparent),
