@@ -62,15 +62,15 @@
   /* section headline — h2 */
   --text-akta-heading-48: 32px;
   --text-akta-heading-48--line-height: 1.12;
-  --text-akta-heading-48--letter-spacing: -0.06em;
+  --text-akta-heading-48--letter-spacing: -0.01em;
   --text-akta-heading-48--font-weight: 400;
   --text-akta-heading-48-sm: 40px;
   --text-akta-heading-48-sm--line-height: 1.1;
-  --text-akta-heading-48-sm--letter-spacing: -0.06em;
+  --text-akta-heading-48-sm--letter-spacing: -0.03em;
   --text-akta-heading-48-sm--font-weight: 400;
   --text-akta-heading-48-lg: 48px;
   --text-akta-heading-48-lg--line-height: 1.08;
-  --text-akta-heading-48-lg--letter-spacing: -0.06em;
+  --text-akta-heading-48-lg--letter-spacing: -0.03em;
   --text-akta-heading-48-lg--font-weight: 400;
   /* sub-section headline — h3 */
   --text-akta-heading-32: 24px;
