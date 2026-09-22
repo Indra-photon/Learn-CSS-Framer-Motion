@@ -1,0 +1,464 @@
+/* ───────────────────────────────────────────────────────────────────────────
+ * loader — twelve indeterminate loaders built as small 3D orbital scenes.
+ *
+ * The 3D is real, not faked with z-index. Each loader is a perspective
+ * camera looking at one or more orbital PLANES tilted with rotateX/rotateZ
+ * and kept in `preserve-3d`. Bodies that orbit inside a plane genuinely go
+ * around the sun: the browser depth-sorts them, so a planet passes in front
+ * of the sun on the near side and behind it on the far side with no
+ * choreography from us. Trails and rings are drawn flat in the plane, so
+ * they foreshorten into ellipses as the camera would see them.
+ *
+ * The parts, from the camera in:
+ *   .ldr           camera. font-size = --ldr-size, so every em is a fraction
+ *                  of the loader. Sets perspective.
+ *   .ldr__plane    a tilted orbital plane: rotateZ(--yaw) rotateX(--tilt).
+ *   .ldr__orbit    a group spinning inside the plane (period --period).
+ *   .ldr__carrier  a 0×0 point pushed out to radius --r. Bodies hang here.
+ *   .ldr__trail    conic-gradient arc behind the carrier, radius --r.
+ *   .ldr__ring     a faint gradient orbit guide, radius --r.
+ *   .ldr__sphere   a body. Radial gradient with a highlight at 35/30, rim
+ *                  falloff, and a glow. It must FACE THE CAMERA, so it
+ *                  undoes every rotation above it: rotateZ(-spin)
+ *                  rotateX(-tilt) rotateZ(-yaw). The spin part is animated
+ *                  with the same period and timing as its orbit.
+ *   .ldr__sun      a sphere in sun colours with a bigger glow and a pulse.
+ *
+ * Every animated property is composited (transform, opacity,
+ * offset-distance). Reduced motion pauses everything in place — negative
+ * delays keep tails spread out — and breathes the whole scene instead.
+ * ──────────────────────────────────────────────────────────────────────── */
+
+.ldr {
+  --ldr-size: 48px;
+  /* palette: sun is warm, bodies run violet → cyan. Override per instance. */
+  --ldr-sun: oklch(0.8 0.17 65);
+  --ldr-sun-deep: oklch(0.55 0.22 25);
+  --ldr-a: oklch(0.7 0.2 300);
+  --ldr-b: oklch(0.82 0.15 205);
+  --ldr-ink: currentColor;
+  /* rotations a sphere must undo to face the camera; planes set these */
+  --tilt: 0deg;
+  --yaw: 0deg;
+  --ang: 0deg;
+  --arm: 0deg;
+  --period: 2s;
+  --delay: 0s;
+  position: relative;
+  display: inline-block;
+  flex: none;
+  width: var(--ldr-size);
+  height: var(--ldr-size);
+  font-size: var(--ldr-size);
+  line-height: 0;
+  perspective: 2.4em;
+  transform-style: preserve-3d;
+}
+
+.ldr__plane,
+.ldr__orbit {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+.ldr__plane {
+  transform: rotateZ(var(--yaw)) rotateX(var(--tilt));
+}
+.ldr__orbit {
+  animation: ldr-spin var(--period) linear infinite;
+  animation-delay: var(--delay);
+}
+.ldr__orbit--kepler {
+  animation-name: ldr-spin-k;
+}
+.ldr__carrier {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  transform: rotateZ(var(--ang)) translateX(var(--r, 0));
+  transform-style: preserve-3d;
+}
+
+/* ring + trail share the box: a circle of radius --r centred in the plane */
+.ldr__ring,
+.ldr__trail {
+  position: absolute;
+  top: calc(50% - var(--r));
+  left: calc(50% - var(--r));
+  width: calc(var(--r) * 2);
+  height: calc(var(--r) * 2);
+  border-radius: 50%;
+  --tw: 0.03em; /* stroke width */
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--tw)), #000 calc(100% - var(--tw) + 0.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - var(--tw)), #000 calc(100% - var(--tw) + 0.5px));
+}
+.ldr__ring {
+  --tw: 0.02em;
+  background: conic-gradient(from 0deg, var(--ldr-a), var(--ldr-b), var(--ldr-a));
+  opacity: 0.28;
+}
+/* The carrier sits at 3 o'clock (conic 90deg). The trail is the arc the
+ * body just left, so it runs counter-clockwise back from there and is
+ * brightest at the body. */
+.ldr__trail {
+  --len: 120deg;
+  --tc: var(--ldr-b);
+  background: conic-gradient(
+    from 90deg,
+    transparent 0deg calc(360deg - var(--len)),
+    color-mix(in oklab, var(--tc) 0%, transparent) calc(360deg - var(--len)),
+    var(--tc) 360deg
+  );
+}
+
+/* bodies */
+.ldr__sphere,
+.ldr__sun {
+  position: absolute;
+  --d: 0.12em;
+  --c: var(--ldr-a);
+  top: calc(var(--d) / -2);
+  left: calc(var(--d) / -2);
+  width: var(--d);
+  height: var(--d);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 30%, #fff 0%, transparent 22%),
+    radial-gradient(circle at 40% 35%, var(--c) 0%, color-mix(in oklab, var(--c) 55%, #000) 70%, color-mix(in oklab, var(--c) 25%, #000) 100%);
+  box-shadow: 0 0 0.1em color-mix(in oklab, var(--c) 55%, transparent);
+  /* face the camera: undo carrier angle, plane tilt and plane yaw */
+  transform: rotateZ(calc(-1 * var(--ang) - var(--arm))) rotateX(calc(-1 * var(--tilt))) rotateZ(calc(-1 * var(--yaw)));
+}
+/* a sphere riding an orbit also has to undo the orbit's spin, continuously */
+.ldr__orbit .ldr__sphere,
+.ldr__orbit .ldr__sun {
+  animation: ldr-face var(--period) linear infinite;
+  animation-delay: var(--delay);
+}
+.ldr__orbit--kepler .ldr__sphere,
+.ldr__orbit--kepler .ldr__sun {
+  animation-name: ldr-face-k;
+}
+.ldr__sun {
+  --d: 0.26em;
+  --c: var(--ldr-sun);
+  background:
+    radial-gradient(circle at 38% 32%, #fff6e0 0%, transparent 28%),
+    radial-gradient(circle at 42% 38%, var(--ldr-sun) 0%, var(--ldr-sun-deep) 68%, color-mix(in oklab, var(--ldr-sun-deep) 60%, #000) 100%);
+  box-shadow:
+    0 0 0.08em color-mix(in oklab, var(--ldr-sun) 70%, transparent),
+    0 0 0.3em 0.02em color-mix(in oklab, var(--ldr-sun) 35%, transparent);
+}
+.ldr__sun--pulse {
+  animation: ldr-pulse 2.4s ease-in-out infinite;
+}
+
+/* ── 1. Orbit — one planet on a tilted plane, trailing light. ───────────── */
+.ldr--orbit .ldr__plane { --tilt: 64deg; --yaw: -12deg; }
+.ldr--orbit .ldr__orbit { --period: 1.7s; --r: 0.42em; }
+.ldr--orbit .ldr__trail { --len: 140deg; }
+
+/* ── 2. Solar system — coplanar orbits, Kepler periods, each its own hue. ── */
+.ldr--solar .ldr__plane { --tilt: 66deg; --yaw: 18deg; }
+.ldr--solar .ldr__orbit:nth-child(2) { --period: 1.2s; --r: 0.2em;  --delay: -0.2s; }
+.ldr--solar .ldr__orbit:nth-child(3) { --period: 2.1s; --r: 0.33em; --delay: -1.1s; }
+.ldr--solar .ldr__orbit:nth-child(4) { --period: 3.4s; --r: 0.46em; --delay: -2.4s; }
+.ldr--solar .ldr__orbit:nth-child(2) .ldr__sphere { --d: 0.08em; --c: var(--ldr-sun); }
+.ldr--solar .ldr__orbit:nth-child(3) .ldr__sphere { --d: 0.1em;  --c: var(--ldr-b); }
+.ldr--solar .ldr__orbit:nth-child(4) .ldr__sphere { --d: 0.09em; --c: var(--ldr-a); }
+.ldr--solar .ldr__trail { --len: 70deg; --tw: 0.02em; }
+.ldr--solar .ldr__orbit:nth-child(2) .ldr__trail { --tc: var(--ldr-sun); }
+.ldr--solar .ldr__orbit:nth-child(4) .ldr__trail { --tc: var(--ldr-a); }
+.ldr--solar .ldr__sun { --d: 0.16em; }
+
+/* ── 3. Ellipse — eccentric orbit; sun at the focus, fast at perihelion. ── */
+.ldr--ellipse .ldr__plane { --tilt: 70deg; --yaw: -22deg; }
+.ldr--ellipse .ldr__sun { --d: 0.2em; }
+.ldr--ellipse .ldr__focus {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  transform: translateX(0.26em); /* c = √(a² − b²) for a=.46, b=.38 */
+  transform-style: preserve-3d;
+}
+.ldr--ellipse .ldr__path {
+  position: absolute;
+  transform-style: preserve-3d;
+  offset-path: ellipse(0.46em 0.38em at 50% 50%);
+  offset-rotate: 0deg;
+  animation: ldr-travel-k 2.2s infinite;
+  animation-delay: calc(var(--_i, 0) * -0.09s);
+  width: 0;
+  height: 0;
+  top: 0;
+  left: 0;
+}
+.ldr--ellipse .ldr__path .ldr__sphere {
+  --d: calc(0.13em - var(--_i, 0) * 0.02em);
+  --c: color-mix(in oklab, var(--ldr-b), var(--ldr-a) calc(var(--_i, 0) * 20%));
+  opacity: calc(1 - var(--_i, 0) * 0.2);
+}
+.ldr--ellipse .ldr__guide {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.92em;
+  height: 0.76em;
+  translate: -50% -50%;
+  border-radius: 50%;
+  --tw: 0.02em;
+  background: conic-gradient(from 0deg, var(--ldr-a), var(--ldr-b), var(--ldr-a));
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--tw)), #000 calc(100% - var(--tw) + 0.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - var(--tw)), #000 calc(100% - var(--tw) + 0.5px));
+  opacity: 0.25;
+}
+
+/* ── 4. Comet — a hot head, a long light trail, sparks shed behind it. ──── */
+.ldr--comet .ldr__plane { --tilt: 58deg; --yaw: -28deg; }
+.ldr--comet .ldr__sun { --d: 0.12em; opacity: 0.85; }
+.ldr--comet .ldr__orbit { --period: 1.8s; --r: 0.4em; --delay: calc(var(--_i, 0) * -0.075s); }
+.ldr--comet .ldr__orbit .ldr__sphere {
+  --d: calc(0.14em - var(--_i, 0) * 0.024em);
+  --c: color-mix(in oklab, var(--ldr-sun), var(--ldr-b) calc(var(--_i, 0) * 25%));
+  opacity: calc(1 - var(--_i, 0) * 0.17);
+}
+.ldr--comet .ldr__trail { --len: 200deg; --tw: 0.05em; --tc: var(--ldr-b); }
+
+/* ── 5. Binary — two suns of different colours sharing one orbit. ───────── */
+.ldr--binary .ldr__plane { --tilt: 60deg; --yaw: 14deg; }
+.ldr--binary .ldr__orbit { --period: 1.9s; --r: 0.22em; }
+.ldr--binary .ldr__orbit:nth-child(2) { --delay: -0.95s; }
+.ldr--binary .ldr__orbit .ldr__sun { --d: 0.2em; }
+.ldr--binary .ldr__orbit:nth-child(2) .ldr__sun {
+  --ldr-sun: var(--ldr-a);
+  --ldr-sun-deep: oklch(0.42 0.2 290);
+}
+.ldr--binary .ldr__trail { --len: 90deg; --tw: 0.03em; --tc: var(--ldr-sun); }
+.ldr--binary .ldr__orbit:nth-child(2) .ldr__trail { --tc: var(--ldr-a); }
+.ldr--binary .ldr__ring { --r: 0.22em; }
+
+/* ── 6. Diffuse — particles born at the core, thrown out across the plane. ─ */
+.ldr--diffuse .ldr__plane { --tilt: 56deg; --yaw: 0deg; }
+/* only the particle carriers get an angle; the sun's carrier has no --_i and
+ * an unresolvable calc would poison every var(--ang) beneath it */
+.ldr--diffuse .ldr__carrier--arm { --ang: calc(var(--_i) * 36deg); }
+.ldr--diffuse .ldr__carrier--arm .ldr__sphere {
+  --d: 0.1em;
+  --c: color-mix(in oklab, var(--ldr-a), var(--ldr-b) calc(var(--_i) * 10%));
+  animation: ldr-diffuse 1.7s cubic-bezier(0.1, 0.7, 0.3, 1) infinite;
+  animation-delay: calc(var(--_i) * -0.17s);
+}
+.ldr--diffuse .ldr__ring {
+  --r: 0.46em;
+  animation: ldr-ripple 1.7s cubic-bezier(0.1, 0.7, 0.3, 1) infinite;
+  opacity: 0;
+}
+
+/* ── 7. Nebula — gradient rings breathe outward, slowly turning. ────────── */
+.ldr--nebula .ldr__plane { --tilt: 62deg; --yaw: -10deg; }
+.ldr--nebula .ldr__ring {
+  --r: 0.48em;
+  --tw: 0.035em;
+  animation:
+    ldr-ripple 2.4s cubic-bezier(0.2, 0.6, 0.3, 1) infinite,
+    ldr-spin 6s linear infinite;
+  animation-delay: calc(var(--_i) * -0.8s), calc(var(--_i) * -2s);
+}
+.ldr--nebula .ldr__sun { --d: 0.22em; }
+
+/* ── 8. Atom — three shells on different axes, an electron on each. ─────── */
+.ldr--atom .ldr__plane { --tilt: 74deg; --yaw: calc(var(--_i) * 60deg); }
+.ldr--atom .ldr__orbit { --r: 0.44em; --period: calc(1.5s + var(--_i) * 0.25s); --delay: calc(var(--_i) * -0.6s); }
+.ldr--atom .ldr__sphere { --d: 0.09em; --c: var(--ldr-b); }
+.ldr--atom .ldr__plane:nth-child(3) .ldr__sphere { --c: var(--ldr-a); }
+.ldr--atom .ldr__trail { --len: 110deg; --tw: 0.025em; }
+.ldr--atom .ldr__plane:nth-child(3) .ldr__trail { --tc: var(--ldr-a); }
+.ldr--atom .ldr__ring { --r: 0.44em; opacity: 0.2; }
+.ldr--atom .ldr__sun { --d: 0.14em; }
+
+/* ── 9. Saturn — a banded ring turning around a gradient body. ──────────── */
+.ldr--saturn .ldr__plane { --tilt: 68deg; --yaw: -20deg; }
+.ldr--saturn .ldr__body { --d: 0.4em; --c: var(--ldr-a); }
+.ldr--saturn .ldr__band {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1em;
+  height: 1em;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: repeating-conic-gradient(
+    from 0deg,
+    var(--ldr-b) 0deg 9deg,
+    color-mix(in oklab, var(--ldr-a) 60%, transparent) 9deg 18deg,
+    var(--ldr-b) 18deg 30deg
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent 0 0.29em, #000 0.3em 0.36em, transparent 0.365em 0.39em, #000 0.395em 0.5em, transparent 0.5em);
+  mask: radial-gradient(farthest-side, transparent 0 0.29em, #000 0.3em 0.36em, transparent 0.365em 0.39em, #000 0.395em 0.5em, transparent 0.5em);
+  opacity: 0.85;
+  animation: ldr-spin 4s linear infinite;
+}
+.ldr--saturn .ldr__orbit { --period: 4s; --r: 0.45em; --delay: calc(var(--_i) * (-4s / 8)); }
+.ldr--saturn .ldr__orbit .ldr__sphere { --d: 0.05em; --c: #fff; box-shadow: none; }
+
+/* ── 10. Meteor — a starfield rushing at the camera. ────────────────────── */
+.ldr--meteor .ldr__sky {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 50%, color-mix(in oklab, var(--ldr-a) 45%, transparent), transparent 45%),
+    radial-gradient(circle at 50% 50%, color-mix(in oklab, var(--ldr-a) 18%, #000) 0%, #000 100%);
+  perspective: 0.9em;
+  transform-style: preserve-3d;
+}
+.ldr--meteor .ldr__carrier--arm { --ang: calc(var(--_i) * 33deg + var(--_i) * var(--_i) * 7deg); }
+.ldr--meteor .ldr__streak {
+  position: absolute;
+  top: -0.012em;
+  left: 0;
+  width: 0.28em;
+  height: 0.024em;
+  border-radius: 1em;
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--ldr-b) 60%, transparent) 55%, var(--ldr-b) 85%, #fff);
+  box-shadow: 0 0 0.03em color-mix(in oklab, var(--ldr-b) 50%, transparent);
+  animation: ldr-warp 1.5s cubic-bezier(0.6, 0, 0.85, 0.35) infinite;
+  animation-delay: calc(var(--_i) * -0.137s);
+}
+
+/* ── 11. Eclipse — a moon crosses the face of a glowing sun. ────────────── */
+.ldr--eclipse .ldr__plane { --tilt: 22deg; --yaw: 10deg; }
+.ldr--eclipse .ldr__sun { --d: 0.42em; }
+.ldr--eclipse .ldr__corona {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.7em;
+  height: 0.7em;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent, color-mix(in oklab, var(--ldr-sun) 60%, transparent) 30%, transparent 50%, color-mix(in oklab, var(--ldr-sun) 40%, transparent) 80%, transparent);
+  -webkit-mask: radial-gradient(farthest-side, transparent 0 0.2em, #000 0.24em 0.28em, transparent 0.35em);
+  mask: radial-gradient(farthest-side, transparent 0 0.2em, #000 0.24em 0.28em, transparent 0.35em);
+  animation: ldr-spin 5s linear infinite;
+}
+.ldr--eclipse .ldr__orbit { --period: 2.6s; --r: 0.3em; }
+.ldr--eclipse .ldr__orbit .ldr__sphere {
+  --d: 0.26em;
+  --c: oklch(0.3 0.02 260);
+  box-shadow: inset 0.03em -0.02em 0.04em color-mix(in oklab, var(--ldr-sun) 40%, transparent);
+}
+
+/* ── 12. Galaxy — spiral arms of particles falling toward a bright bulge. ── */
+.ldr--galaxy .ldr__plane { --tilt: 62deg; --yaw: 16deg; }
+.ldr--galaxy .ldr__orbit { --period: 3.2s; }
+.ldr--galaxy .ldr__arm {
+  position: absolute;
+  inset: 0;
+  --arm: calc(var(--_i) * 90deg);
+  transform: rotateZ(var(--arm));
+  transform-style: preserve-3d;
+}
+.ldr--galaxy .ldr__arm .ldr__carrier { --ang: calc(var(--_j) * -28deg); --r: calc(0.46em - var(--_j) * 0.13em); }
+.ldr--galaxy .ldr__arm .ldr__sphere {
+  --d: calc(0.08em - var(--_j) * 0.012em);
+  --c: color-mix(in oklab, var(--ldr-b), var(--ldr-a) calc(var(--_j) * 35%));
+  animation:
+    ldr-face var(--period) linear infinite,
+    ldr-infall 3.2s cubic-bezier(0.5, 0, 0.75, 0.5) infinite;
+  animation-delay: 0s, calc((var(--_i) * 0.8s + var(--_j) * 1.1s) * -1);
+}
+.ldr--galaxy .ldr__bulge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.5em;
+  height: 0.5em;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, var(--ldr-sun) 25%, color-mix(in oklab, var(--ldr-a) 50%, transparent) 55%, transparent 72%);
+  animation: ldr-pulse 3.2s ease-in-out infinite;
+}
+
+/* ── canvas variants (Swarm belt, Nebula dust) — see CanvasLoaders.tsx ─── */
+.ldr--canvas canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* ── keyframes ──────────────────────────────────────────────────────────── */
+@keyframes ldr-spin {
+  to { transform: rotateZ(360deg); }
+}
+@keyframes ldr-face {
+  from { transform: rotateZ(calc(0deg - var(--ang) - var(--arm)))    rotateX(calc(-1 * var(--tilt))) rotateZ(calc(-1 * var(--yaw))); }
+  to   { transform: rotateZ(calc(-360deg - var(--ang) - var(--arm))) rotateX(calc(-1 * var(--tilt))) rotateZ(calc(-1 * var(--yaw))); }
+}
+/* Kepler-ish: the near half of the lap runs fast, the far half slow. The
+ * face keyframes must carry the identical timing or the sphere wobbles. */
+@keyframes ldr-spin-k {
+  0%   { transform: rotateZ(0deg);   animation-timing-function: cubic-bezier(0.35, 0, 0.65, 1); }
+  50%  { transform: rotateZ(180deg); animation-timing-function: cubic-bezier(0.35, 0, 0.65, 1); }
+  100% { transform: rotateZ(360deg); }
+}
+@keyframes ldr-face-k {
+  0%   { transform: rotateZ(0deg)    rotateX(calc(-1 * var(--tilt))) rotateZ(calc(-1 * var(--yaw))); animation-timing-function: cubic-bezier(0.35, 0, 0.65, 1); }
+  50%  { transform: rotateZ(-180deg) rotateX(calc(-1 * var(--tilt))) rotateZ(calc(-1 * var(--yaw))); animation-timing-function: cubic-bezier(0.35, 0, 0.65, 1); }
+  100% { transform: rotateZ(-360deg) rotateX(calc(-1 * var(--tilt))) rotateZ(calc(-1 * var(--yaw))); }
+}
+/* Ellipse: perihelion is the 0% point (3 o'clock, where the focus sun is).
+ * Ease out leaving it, ease in returning. */
+@keyframes ldr-travel-k {
+  0%   { offset-distance: 0%;   animation-timing-function: cubic-bezier(0.1, 0.4, 0.5, 1); }
+  50%  { offset-distance: 50%;  animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6); }
+  100% { offset-distance: 100%; }
+}
+/* Scales on bodies are 3-axis on purpose. The individual `scale` property
+ * is applied before `transform`, i.e. in the parent's frame; a 2D scale
+ * would leave z alone and squash a billboarded sphere into a line. */
+@keyframes ldr-pulse {
+  0%, 100% { scale: 1 1 1; }
+  50%      { scale: 0.88 0.88 0.88; }
+}
+@keyframes ldr-diffuse {
+  0%   { translate: 0.06em 0; scale: 0.5 0.5 0.5; opacity: 0; }
+  10%  { opacity: 1; scale: 1.1 1.1 1.1; }
+  60%  { opacity: 0.9; }
+  100% { translate: 0.47em 0; scale: 0.15 0.15 0.15; opacity: 0; }
+}
+@keyframes ldr-ripple {
+  0%   { scale: 0.15 0.15 0.15; opacity: 0.9; }
+  100% { scale: 1 1 1;          opacity: 0; }
+}
+@keyframes ldr-infall {
+  0%   { translate: 0 0;      scale: 1 1 1;       opacity: 0; }
+  20%  { opacity: 1; }
+  100% { translate: -0.3em 0; scale: 0.2 0.2 0.2; opacity: 0; }
+}
+@keyframes ldr-warp {
+  0%   { transform: translateZ(-1.4em) translateX(0.03em) scaleX(0.2); opacity: 0; }
+  25%  { opacity: 1; }
+  100% { transform: translateZ(0.5em)  translateX(0.5em) scaleX(2.2); opacity: 0; }
+}
+@keyframes ldr-breathe {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.55; }
+}
+
+/* ── reduced motion ─────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .ldr * {
+    animation-play-state: paused !important;
+  }
+  .ldr {
+    animation: ldr-breathe 2.6s ease-in-out infinite;
+  }
+}
