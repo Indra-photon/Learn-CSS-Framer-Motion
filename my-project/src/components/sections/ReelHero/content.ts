@@ -12,39 +12,14 @@ import type { Reel } from "./reel-geometry";
 const pexels = (id: string): string =>
   `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=640&h=360&fit=crop`;
 
-/**
- * Real clients, real logos.
- *
- * `tech-stack-icons` carries the actual marks, so the rail under the crest
- * card names the company the way the company is recognised rather than
- * setting an invented word in the body face. For a studio, the client list
- * *is* the credential — a logo reads as proof in a way a name never does.
- */
 export const REELS: Reel[] = (
   [
-    [
-      "414860",
-      "Plasma globe",
-      "Vercel",
-      "vercel",
-      "Product launch",
-      "0:48",
-      "#a46cff",
-    ],
-    [
-      "3109807",
-      "Violet marble",
-      "Linear",
-      "linear",
-      "Brand film",
-      "1:12",
-      "#8f7bff",
-    ],
+    ["414860", "Plasma globe", "Helix", "Product launch", "0:48", "#a46cff"],
+    ["3109807", "Violet marble", "Quanta", "Brand film", "1:12", "#8f7bff"],
     [
       "2156881",
       "Teal and purple abstract",
-      "Supabase",
-      "supabase",
+      "Northwind",
       "Feature tour",
       "0:36",
       "#2fd3c4",
@@ -52,35 +27,17 @@ export const REELS: Reel[] = (
     [
       "2832382",
       "Multicoloured swirl",
-      "Stripe",
-      "stripe",
+      "Pallet",
       "Series A film",
       "2:04",
       "#ff7a3d",
     ],
-    [
-      "1252890",
-      "The Milky Way",
-      "Figma",
-      "figma",
-      "Keynote open",
-      "0:22",
-      "#6ea8ff",
-    ],
-    [
-      "3617500",
-      "Aurora over a lake",
-      "Notion",
-      "notion",
-      "Onboarding",
-      "1:30",
-      "#3ee6a0",
-    ],
+    ["1252890", "The Milky Way", "Orbit", "Keynote open", "0:22", "#6ea8ff"],
+    ["3617500", "Aurora over a lake", "Lumen", "Onboarding", "1:30", "#3ee6a0"],
     [
       "1323550",
       "Pastel sunset ridges",
-      "Framer",
-      "framer",
+      "Ridgeline",
       "Explainer",
       "0:54",
       "#ff9d6b",
@@ -88,26 +45,16 @@ export const REELS: Reel[] = (
     [
       "3680219",
       "A silhouette at sunset",
-      "Resend",
-      "resend",
+      "Solo",
       "Founder story",
       "1:48",
       "#ff7b5c",
     ],
-    [
-      "1707215",
-      "Towers at night",
-      "Clerk",
-      "clerk",
-      "Case study",
-      "1:06",
-      "#ffb03a",
-    ],
+    ["1707215", "Towers at night", "Monolith", "Case study", "1:06", "#ffb03a"],
     [
       "1133957",
       "A hummingbird at a hibiscus",
-      "Railway",
-      "railway",
+      "Colibri",
       "Motion ident",
       "0:14",
       "#ff5d7a",
@@ -115,29 +62,19 @@ export const REELS: Reel[] = (
     [
       "2422915",
       "Dolphins underwater",
-      "PostHog",
-      "posthog",
+      "Pod",
       "Culture film",
       "2:20",
       "#35b8ff",
     ],
-    [
-      "1366919",
-      "A snow peak",
-      "Neon",
-      "neon",
-      "Conference reel",
-      "0:42",
-      "#bcd9ff",
-    ],
+    ["1366919", "A snow peak", "Summit", "Conference reel", "0:42", "#bcd9ff"],
   ] as const
-).map(([id, alt, label, logo, caption, duration, accent]) => ({
+).map(([id, alt, label, caption, duration, accent]) => ({
   accent,
   alt,
   caption,
   duration,
   label,
-  logo,
   src: pexels(id),
 }));
 
