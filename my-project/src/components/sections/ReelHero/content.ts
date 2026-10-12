@@ -81,11 +81,12 @@ export const REELS: Reel[] = (
 export const COPY = {
   eyebrow: "Product video, as a service",
   /** Runs wrapped in asterisks are set in the display serif, in italic. */
-  headline: "Your product,\n*launched* with *videos*",
+  headline: "Your product, *launched* \nwith *videos*",
   ctaNote: "Kickoff this week · fixed price per reel",
   primaryCta: "Book a meeting",
+  secondaryCta: "See the work",
   subhead:
-    "A standing video team for software companies. Launch films, feature tours and onboarding — briefed on Monday, cut and delivered inside two weeks.",
+    "A standing video team for software companies. Launch films, feature tours and onboarding. We handle the whole process, from brief to final cut.",
 };
 
 /**

@@ -210,17 +210,17 @@ toward grey.
 
 ## The call to action
 
-One button, and it is not a pill. A pill with a flat fill is the default SaaS
-button and reads as a component someone installed — the wrong note under a
-display headline this size.
+Two buttons, one shape. A pill with a flat fill is the default SaaS button and
+reads as a component someone installed — the wrong note under a display
+headline this size.
 
 `BevelButton` is three stacked layers:
 
-| Layer     | Role                                            |
-| --------- | ----------------------------------------------- |
-| **edge**  | the full shape, light-to-dark diagonal gradient |
-| **face**  | inset 1.5px, its own vertical gradient          |
-| **label** | unclipped, so type is never cut by the chamfer  |
+| Layer | Role |
+|---|---|
+| **edge** | the full shape, light-to-dark diagonal gradient |
+| **face** | inset 1.5px, its own vertical gradient |
+| **label** | unclipped, so type is never cut by the chamfer |
 
 The layering is what makes the bevel real. A `border` cannot do it: `clip-path`
 cuts the border along with the box, so the chamfered corners lose their outline
@@ -232,6 +232,29 @@ reads as a lit edge rather than as a stroke.
 Corners are cut on opposite diagonals. Cutting all four reads as a stop sign;
 cutting two gives the shape a direction.
 
+**The two tones are one object under different light.** `accent` fills the
+face; `ghost` sets the face to the stage colour so only the 1.5px rim survives.
+A second button built separately would drift from the first on the next edit.
+
+**The label colour is solved, not chosen.** It sits on a *gradient*, so what it
+has to survive is the weakest stop, not the base — white on this hero's accent
+measures 3.08:1 against the base and worse against the light end. And the fill
+is a preset value, so a colour typed in once goes quietly wrong the next time
+the palette is edited. `faceFor` picks the better label for the fill, then
+shifts the face until the weakest stop clears 4.5:1.
+
+Measured across the presets:
+
+| Preset | Label | Face shift | Worst stop |
+|---|---|---|---|
+| `spotlight` | dark | none | 4.56:1 |
+| `studio` | dark | none | 5.62:1 |
+| `editorial` | white | −16% | 4.69:1 |
+
+`editorial`'s `#b4411b` is a mid-tone with **no** readable label until the face
+moves — exactly the case that ships unnoticed. The two that already pass are
+left untouched, so the colour stays as designed.
+
 Two details that are easy to get wrong:
 
 - The drop shadow is a **`filter`**, not a `box-shadow`. A box-shadow is clipped
@@ -239,8 +262,23 @@ Two details that are easy to get wrong:
 - The focus ring sits on the **unclipped anchor**. Anything painted inside the
   clipped layers is cut by the chamfer, outlines included.
 
-The secondary action is gone. Two buttons side by side made the reader rank them
-before acting; one does not.
+## The header
+
+Wordmark and nav sit on the copy's own left edge, so the header reads as the top
+line of the same column rather than a separate full-width bar.
+
+The mark before the wordmark is the button's chamfer at 10px, carrying the live
+accent — a mark that repeats the one shape the page already has reads as a
+system, where a generic circle or rounded square reads as a placeholder.
+
+Nav items get a padded hover target with a background rather than an opacity
+shift, so the hit area is visible and larger than the glyphs. The hairline under
+the header fades out across the width: it is the edge of the section, not a
+border on the nav.
+
+No button here. A header "Book a meeting" and a hero "Book a meeting",
+identically worded 700px apart, made the reader decide which one was *the*
+button. The hero owns the conversion.
 
 ## The proof figure
 
@@ -253,16 +291,6 @@ during the entrance. `AnimatePresence` keyed on the value swaps the numeral
 alone: it rises 16px and resolves out of an 8px blur, while the unit beside it
 never moves. `popLayout` takes the outgoing numeral out of flow so the unit does
 not shuffle sideways while the two overlap.
-
-## The scroll hand-off
-
-`phi` is the sum of three terms — the autoplay clock, the drag offset, and the
-page's own scroll. Because `running` is gated on `inView`, the clock stops as
-the section leaves and the scroll term is the only thing still turning the ring.
-
-So the gallery neither freezes on its way out nor keeps ticking where nobody can
-see it: it hands over, and the page finishes the rotation. The term is sprung so
-a trackpad flick does not snap it, and it is zeroed under reduced motion.
 
 ## Entrance
 
@@ -290,7 +318,7 @@ off-stage right — far too strong, and it made the gallery a separate
 performance instead of part of one arrival.
 
 **Nothing rotates until it has finished travelling.** Two motions on one object
-at once read as a glitch: the ring would appear to rotate *and* drift, and
+at once read as a glitch: the ring would appear to rotate _and_ drift, and
 neither would be legible. Landing first, then turning, keeps each a separate
 statement — even at 10px.
 

@@ -9,14 +9,13 @@ import {
   useMotionValue,
   useMotionValueEvent,
   useReducedMotion,
-  useScroll,
   useSpring,
   useTransform,
 } from "motion/react";
 
 import { cn } from "@/lib/utils";
 
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import type { MotionValue } from "motion/react";
 
 import { COPY, NAV, PROOF, REELS } from "./content";
@@ -60,7 +59,7 @@ const GRAIN_PLATE =
 const TYPE = {
   /** The proof number. The second voice the scale was missing. */
   figure: 44,
-  lead: 26,
+  lead: 22,
   body: 15,
   micro: 11,
 } as const;
@@ -202,15 +201,6 @@ const withEmphasis = (line: string, accent: MotionValue<string>): ReactNode[] =>
       ),
     );
 
-/**
- * How many reels the ring advances across the hero's exit.
- *
- * The hand-off: `inView` drops as the section leaves, which stops the clock,
- * and from then on the only thing moving `phi` is the page itself. The ring
- * does not freeze and it does not keep ticking out of sight — it hands over.
- */
-const SCROLL_REELS = 3.5;
-
 /** Below this the ring moves under the copy instead of beside it. */
 const COMPACT = 900;
 
@@ -303,6 +293,34 @@ export const ReelHero = ({
   const [hovering, setHovering] = useState(false);
   const [dragging, setDragging] = useState(false);
 
+  /**
+   * The pinned stage's height, read from the viewport rather than measured.
+   *
+   * Once the stage became `position: sticky` inside a 240svh section, the
+   * measured height it laid everything out against stopped matching the one
+   * screen it actually occupies — the ring's centre and the copy's centre
+   * both ended up far below the fold on first paint.
+   *
+   * Rather than chase what a `ResizeObserver` reports for a sticky element,
+   * this takes the height as the known quantity it is: the stage is exactly
+   * one viewport tall. The value is then written back as explicit pixels, so
+   * nothing downstream has to agree with a `svh` unit about what a screen is
+   * either.
+   */
+  const [viewport, setViewport] = useState(0);
+
+  useEffect(() => {
+    const read = () => setViewport(window.innerHeight);
+
+    read();
+    window.addEventListener("resize", read);
+
+    return () => window.removeEventListener("resize", read);
+  }, []);
+
+  /** The hero itself: one screen, as it was before anything was pinned. */
+  const stageHeight = clamp(viewport || 680, 680, 900);
+
   const compact = stage.width > 0 && stage.width < COMPACT;
 
   /* ----------------------------------------------------------- the copy box */
@@ -359,8 +377,8 @@ export const ReelHero = ({
 
     return compact
       ? clamp(stage.width * 0.5, 130, 320)
-      : clamp(Math.min(stage.width * 0.3, stage.height * 0.46), 180, 400);
-  }, [compact, stage.height, stage.width]);
+      : clamp(Math.min(stage.width * 0.3, stageHeight * 0.46), 180, 400);
+  }, [compact, stageHeight, stage.width]);
 
   const cardWidth = clamp(Math.min(radius * 0.8, stage.width * 0.21), 140, 380);
   const cardHeight = cardWidth / 1.78;
@@ -400,16 +418,12 @@ export const ReelHero = ({
   const stackTop = copyRect ? copyRect.bottom + STACK_GAP : 0;
 
   const centerY = useMemo(() => {
-    if (!compact || stage.height === 0 || stackTop === 0) {
+    if (!compact || stackTop === 0) {
       return 0.52;
     }
 
-    return (stackTop + cardHeight / 2 + radius) / stage.height;
-  }, [cardHeight, compact, radius, stackTop, stage.height]);
-
-  /** Enough stage for the copy, the crest card and its label. */
-  const stackHeight =
-    compact && stackTop > 0 ? stackTop + cardHeight + 18 + 52 : undefined;
+    return (stackTop + cardHeight / 2 + radius) / stageHeight;
+  }, [cardHeight, compact, radius, stackTop, stageHeight]);
 
   const centerX = useMemo(() => {
     if (stage.width === 0) {
@@ -485,11 +499,11 @@ export const ReelHero = ({
     const rows = headlineLines.length;
     // `header.height` is 0 when there is no header — measured, not assumed,
     // so commenting the header out simply gives the headline its space back.
-    const room = Math.max(0, (stage.height || 680) - header.height - 56 - REST);
+    const room = Math.max(0, stageHeight - header.height - 56 - REST);
     const byHeight = room / (rows * 1.02);
 
     return clamp(Math.min(byWidth, byHeight), 34, compact ? 50 : 132);
-  }, [compact, copyWidth, header.height, headlineLines, stage.height]);
+  }, [compact, copyWidth, header.height, headlineLines, stageHeight]);
 
   const config = useMemo(
     () =>
@@ -506,7 +520,7 @@ export const ReelHero = ({
         direction,
         falloff,
         gamma,
-        height: stage.height,
+        height: stageHeight,
         minOpacity: look.minOpacity,
         radius,
         squash,
@@ -525,7 +539,7 @@ export const ReelHero = ({
       radius,
       shown.length,
       squash,
-      stage.height,
+      stageHeight,
       stage.width,
     ],
   );
@@ -544,28 +558,10 @@ export const ReelHero = ({
     stiffness: 130,
   });
 
-  /**
-   * The hand-off.
-   *
-   * `0` while the hero is at rest, `1` once it has scrolled entirely past.
-   * Because `running` is gated on `inView`, the clock stops as the section
-   * leaves and this term is the only thing still turning the ring — so the
-   * gallery decelerates into the page rather than either freezing or
-   * continuing to tick where nobody can see it.
-   */
-  const { scrollYProgress } = useScroll({
-    offset: ["start start", "end start"],
-    target: hostRef,
-  });
-
-  const scrollPhi = useSpring(
-    useTransform(scrollYProgress, [0, 1], [0, reduced ? 0 : SCROLL_REELS]),
-    { damping: 40, mass: 0.6, stiffness: 160 },
-  );
-
+  /** Scroll position of the ring, in reel units. */
   const phi = useTransform(
-    [autoPhi, dragPhi, scrollPhi],
-    ([auto, drag, scrolled]: number[]) => auto + drag + scrolled,
+    [autoPhi, dragPhi],
+    ([auto, drag]: number[]) => auto + drag,
   );
 
   /** Bumped on layout change so a paused ring still re-lays-out. */
@@ -590,7 +586,7 @@ export const ReelHero = ({
 
   const cue = useStoryboard(inView, Boolean(reduced));
 
-  // Held until the gallery has finished travelling. See the storyboard.
+  // Held until the gallery has landed. See the storyboard.
   const running =
     inView && !hovering && !dragging && !reduced && cue >= CUE.settle;
 
@@ -693,58 +689,9 @@ export const ReelHero = ({
     >
       <div
         ref={stageRef}
-        className="relative mx-auto w-full md:min-h-[680px] lg:h-[min(92vh,900px)]"
-        style={{ minHeight: stackHeight ?? 680 }}
+        className="relative mx-auto w-full"
+        style={{ height: stageHeight }}
       >
-        {/* ------------------------------------------------------------ nav */}
-        {/* Wordmark and nav sit on the copy's own left edge, so the header
-            reads as the top line of the same column rather than a separate
-            full-width bar.
-
-            There is no button here any more. A header "Book a reel" and a
-            hero "Book a reel", identically worded 700px apart in two
-            different pill treatments, made the reader decide which one was
-            *the* button — a decision they should never have to make. The hero
-            owns the conversion. */}
-        {/* <header
-          ref={headerRef}
-          className="relative z-[2200] flex flex-wrap items-center gap-x-10 gap-y-4 py-6"
-          style={{ paddingLeft: gutter, paddingRight: gutter }}
-        >
-          <span
-            className="leading-none font-medium tracking-[-0.02em]"
-            style={{ fontSize: TYPE.lead - 6 }}
-          >
-            Frameline
-          </span>
-
-          <nav className="hidden items-center gap-8 md:flex">
-            {NAV.map((item) => (
-              <a
-                key={item}
-                className="leading-none tracking-[-0.01em] transition-opacity hover:opacity-100"
-                href={`#${item.toLowerCase()}`}
-                style={{ color: rgba(look.inkColor, 0.6), fontSize: TYPE.body }}
-              >
-                {item}
-              </a>
-            ))}
-          </nav>
-        </header> */}
-
-        {/* The ring itself is decorative — twelve transformed thumbnails are
-            not something to navigate with a screen reader. The work is listed
-            once, in order, and the grip announces which one is up. */}
-        <ol className="sr-only">
-          {shown.map((reel) => (
-            <li key={reel.src}>
-              {reel.label}
-              {reel.caption ? ` — ${reel.caption}` : ""}
-              {reel.duration ? `, ${reel.duration}` : ""}
-            </li>
-          ))}
-        </ol>
-
         {/* ---------------------------------------------------------- cards */}
         {/* One card per reel, keyed by the reel. The key never moves, so the
             element never remounts and its `src` is written exactly once. */}
@@ -797,6 +744,94 @@ export const ReelHero = ({
             ))
           : null}
 
+        {/* ------------------------------------------------------------ nav */}
+        {/* Wordmark and nav sit on the copy's own left edge, so the header
+            reads as the top line of the same column rather than a separate
+            full-width bar.
+
+            No button here. A header "Book a meeting" and a hero "Book a
+            meeting", identically worded 700px apart, made the reader decide
+            which one was *the* button — a decision they should never have to
+            make. The hero owns the conversion. */}
+        <header
+          ref={headerRef}
+          className="relative z-[2200] flex flex-wrap items-center gap-x-10 gap-y-4 py-7"
+          style={{ paddingLeft: gutter, paddingRight: gutter }}
+        >
+          <a
+            className="group flex items-center gap-2.5 leading-none"
+            href="#top"
+          >
+            {/* The same chamfer as the button, at 10px. A mark that repeats
+                the one shape the page already has reads as a system; a
+                generic circle or rounded square would read as a placeholder. */}
+            <motion.span
+              aria-hidden
+              className="block size-2.5"
+              style={{
+                backgroundColor: accent,
+                clipPath:
+                  "polygon(3px 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%, 0 3px)",
+              }}
+            />
+            <span
+              className="font-medium tracking-[-0.02em]"
+              style={{ fontSize: TYPE.lead - 6 }}
+            >
+              Frameline
+            </span>
+          </a>
+
+          <nav className="hidden items-center gap-1 md:flex">
+            {NAV.map((item) => (
+              <a
+                key={item}
+                className={cn(
+                  "rounded-full px-3 py-2 leading-none tracking-[-0.01em]",
+                  "text-[color:var(--nav)] transition-colors duration-200",
+                  "hover:bg-[color:var(--nav-bg)] hover:text-[color:var(--nav-on)]",
+                  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current",
+                )}
+                href={`#${item.toLowerCase()}`}
+                style={
+                  {
+                    "--nav": rgba(look.inkColor, 0.6),
+                    "--nav-bg": rgba(look.inkColor, 0.08),
+                    "--nav-on": look.inkColor,
+                    fontSize: TYPE.body,
+                  } as CSSProperties
+                }
+              >
+                {item}
+              </a>
+            ))}
+          </nav>
+
+          {/* A hairline the full width of the stage, not of the padded row —
+              it is the edge of the section, not a border on the nav. */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-px"
+            style={{
+              background: `linear-gradient(90deg, ${rgba(look.inkColor, 0.14)}, ${rgba(look.inkColor, 0)} 70%)`,
+            }}
+          />
+        </header>
+
+        {/* The ring itself is decorative — twelve transformed thumbnails are
+            not something to navigate with a screen reader. The work is listed
+            once, in order, and the grip announces which one is up. */}
+        <ol className="sr-only">
+          {shown.map((reel) => (
+            <li key={reel.src}>
+              {reel.label}
+              {reel.caption ? ` — ${reel.caption}` : ""}
+              {reel.duration ? `, ${reel.duration}` : ""}
+            </li>
+          ))}
+        </ol>
+
+        {/* ---------------------------------------------------------- cards */}
         {/* Dims the ring under the copy column. An ellipse anchored off the
             left edge, so it has no edge of its own anywhere near the type —
             a rectangle here would read as a plate, which is exactly what the
@@ -817,7 +852,7 @@ export const ReelHero = ({
             the gallery's far side travels behind the headline. `textVoid`
             would instead shrink those cards to nothing here — the original
             video's choice, and still one prop away. */}
-        <div
+        <motion.div
           ref={copyRef}
           className={cn(
             "absolute z-[2000] flex flex-col",
@@ -831,7 +866,7 @@ export const ReelHero = ({
             // pushes the copy up into it at large display sizes.
             top: compact
               ? undefined
-              : header.height + (stage.height - header.height) / 2,
+              : header.height + (stageHeight - header.height) / 2,
             width: copyWidth,
           }}
         >
@@ -862,12 +897,12 @@ export const ReelHero = ({
             className="tracking-[-0.005em]"
             style={{
               color: rgba(look.inkColor, 0.6),
-              fontSize: compact ? TYPE.body + 2 : TYPE.lead,
-              lineHeight: 1.45,
+              fontSize: compact ? TYPE.body : TYPE.lead,
+              lineHeight: 1.2,
               // The column is sized for the headline, which is far too wide a
               // measure for body copy. The subhead keeps a readable one and
               // simply ends earlier.
-              maxWidth: Math.min(copyWidth, 680),
+              maxWidth: Math.min(copyWidth, 880),
             }}
             {...arrive(cue >= CUE.subhead)}
           >
@@ -906,29 +941,29 @@ export const ReelHero = ({
           </div> */}
 
           <motion.div
-            className="flex flex-col gap-5"
+            className="mt-10 flex flex-col gap-5"
             {...arrive(cue >= CUE.launch)}
           >
-            <div>
-              <BevelButton href="#book" ink={look.background}>
+            <div className="flex flex-wrap items-center gap-3">
+              <BevelButton
+                color={look.accentColor}
+                href="#book"
+                stage={look.background}
+              >
                 {COPY.primaryCta}
               </BevelButton>
-            </div>
 
-            {/* Expectation setting. "Book a meeting" on its own leads to an
-                unknown; this says what happens after the click. */}
-            <span
-              className="leading-none font-medium uppercase"
-              style={{
-                color: rgba(look.inkColor, 0.6),
-                fontSize: TYPE.micro,
-                letterSpacing: "0.14em",
-              }}
-            >
-              {COPY.ctaNote}
-            </span>
+              <BevelButton
+                color={look.inkColor}
+                href="#work"
+                stage={look.background}
+                tone="ghost"
+              >
+                {COPY.secondaryCta}
+              </BevelButton>
+            </div>
           </motion.div>
-        </div>
+        </motion.div>
 
         {/* -------------------------------------------------------- the grip */}
         {/* One surface for the whole ring. The cards themselves are inert, so
