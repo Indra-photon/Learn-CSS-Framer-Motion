@@ -719,7 +719,11 @@ export const ReelHero = ({
                 ink={look.inkColor}
                 phi={phi}
                 reel={reel}
-                showDetails={false}
+                // The crest card wears the "now playing" chrome — play disc,
+                // live dot, scrubber and runtime — so the one reel being
+                // presented reads as a video, not a photograph. The chrome is
+                // gated on `land` inside the card, so only the crest shows it.
+                showDetails={showDetails}
                 stage={look.background}
                 tick={tick}
               />
@@ -915,30 +919,41 @@ export const ReelHero = ({
           {/* No `arrive` on this wrapper: the numeral brings its own entrance,
               and stacking the two would send it travelling 30px through a
               blur. The label still rises with everything else. */}
-          {/* <div className="flex flex-col gap-2">
-            <span
-              className="leading-none font-medium tracking-[-0.03em]"
-              style={{ color: look.inkColor, fontSize: TYPE.figure }}
-            >
-              <ProofFigure
-                reduced={Boolean(reduced)}
-                shown={cue >= CUE.figure}
-                suffix={PROOF.suffix}
-                value={PROOF.value}
-              />
-            </span>
+          <div className="mt-2 flex items-stretch gap-4">
+            {/* A thin rule in the live accent, so the one claim a competitor
+                cannot match is tied to the colour the crested reel is giving
+                the rest of the hero. */}
             <motion.span
-              className="leading-none font-medium uppercase"
-              style={{
-                color: rgba(look.inkColor, 0.6),
-                fontSize: TYPE.micro,
-                letterSpacing: "0.14em",
-              }}
+              aria-hidden
+              className="w-[3px] shrink-0 rounded-full"
+              style={{ background: accent }}
               {...arrive(cue >= CUE.figure)}
-            >
-              {PROOF.label}
-            </motion.span>
-          </div> */}
+            />
+            <div className="flex flex-col gap-2">
+              <span
+                className="leading-none font-medium tracking-[-0.03em]"
+                style={{ color: look.inkColor, fontSize: TYPE.figure }}
+              >
+                <ProofFigure
+                  reduced={Boolean(reduced)}
+                  shown={cue >= CUE.figure}
+                  suffix={PROOF.suffix}
+                  value={PROOF.value}
+                />
+              </span>
+              <motion.span
+                className="leading-none font-medium uppercase"
+                style={{
+                  color: rgba(look.inkColor, 0.6),
+                  fontSize: TYPE.micro,
+                  letterSpacing: "0.14em",
+                }}
+                {...arrive(cue >= CUE.figure)}
+              >
+                {PROOF.label}
+              </motion.span>
+            </div>
+          </div>
 
           <motion.div
             className="mt-10 flex flex-col gap-5"

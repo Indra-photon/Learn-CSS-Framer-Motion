@@ -54,6 +54,9 @@ export const ProofFigure = ({
       ) : null}
     </AnimatePresence>
 
-    {suffix}
+    {/* `whitespace-pre` so the suffix keeps its leading space — a bare text
+        node loses it as collapsible whitespace at the edge of the flex item,
+        which reads as "12days". */}
+    <span className="whitespace-pre">{suffix}</span>
   </span>
 );
